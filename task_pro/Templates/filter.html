@@ -1,0 +1,94 @@
+{% extends "dashboard.html" %}
+{% block head %}
+{% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task | Filter </title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <style>
+        .table_div1 {
+            max-height: 400px;
+        }
+        .form_filterfield{
+            width: 220px;
+            height:30px;
+            padding:5px;
+            font-size: 13px;
+            border-radius: 10px;
+        }
+        .submit_button{
+            border-radius: 10px;
+            border: none;
+            height: 20px;
+            margin-left:20px;
+            width:100px;
+            background-color: rgb(86, 86, 236);
+            color: white;
+            border: 1px solid black;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+<div class="filter_div" >
+    <form action="" method="POST">  
+        {% csrf_token %}
+        <center>
+        <table cellspacing=15>
+            <tr>
+                <td>
+                    <label for="from_date">Form </label>
+                    
+                </td>
+                <td>
+                    <input type="date" name="from_date" value="{{ from_date }}" style="width: 200px;height:10px;padding:10px;font-size: 15px;border-radius: 10px;" required>
+                </td>
+                <td>
+                    <label for="to_date">TO</label>
+                    
+                </td>
+                <td>
+                    <input type="date" name="to_date" value="{{to_date}}" required style="width: 200px;height:10px;padding:10px;font-size: 15px;border-radius: 10px;">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Project
+                </td>
+                <td>
+                    {{ project_form.project  }}
+                </td>
+                <td></td>
+                <td>
+                    <button type="submit" class="submit_button">Filter</button>
+                </td>
+            </tr>
+        </table>
+        </center>
+        
+    </form>
+</div>
+{% if filter_task %}
+<div class="dashboard">
+    <div class="table_div1">
+        <table class="main-table">
+            <th>S.No</th>
+            <th>Task</th>
+            <th>Due Date</th>
+            <th>Status</th>
+            <th>Created by</th>
+            <th>Details</th>
+            {% for i in filter_task %}
+                <tr>
+                    <td>{{ forloop.counter  }}</td>
+                    <td class="table_firstdata" >{{ i.title }}</td>
+                    <td>{{ i.due_date }}</td>
+                    <td class="status">{{ i.status }}</td>
+                    <td  class="table_firstdata">{{ i.created_by }}</td>
+                    <td><a href="{% url 'update_task' i.id %}" >View</a></td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endif %}
+{% endblock %}

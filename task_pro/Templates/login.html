@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task | Login</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        .form_username{
+            margin-top: 10px;;
+            border:none;
+            padding:10px;
+            background-color: rgb(162, 159, 174);
+            border-radius: 0px 5px 5px 0px;
+        }
+        .form_password{
+            border:none;
+            padding:10px;
+            background-color: rgb(162, 159, 174);
+            border-radius: 0px 5px 5px 0px;
+            margin-bottom: 5px;
+        }
+        .bi{
+            padding:8px;
+            background-color: rgb(62, 57, 78);
+            color:white;
+            border-radius: 5px 0px 0px 5px;
+            font-size:18px;
+        }
+        .login_button{
+            width: 220px;
+            padding:10px;
+            border-radius: 10px;
+            border: none;
+        }
+        .login_dif{
+            background-color: rgb(114, 94, 134);
+            padding:20px;
+            width:300px;
+            margin-top: 10%;
+             border-radius: 25px;
+        }
+    </style>
+</head>
+<body>
+    <center>
+    <form action="" method="POST">
+        {% csrf_token %}
+        <div class="login_dif">
+            <center>
+            <h1 style="color: white;text-shadow: 3px 3px 2px black;letter-spacing: 2px;;">LOGIN</h1>
+            {% if error %}<div style="color:red">Enter username and password correctly !</div>{% endif %}
+            <i class="bi bi-person-badge"></i>{{ form.username }} <br> <br>
+            <i class="bi bi-file-lock"></i>{{ form.password }} <br>
+            <div style="margin-bottom: 10px;;">
+                <a href="/admin" style="margin-bottom:8px;">Login as Admin</a> <br>
+                <a href="" style="margin-bottom:8px;">Forget password ?</a>
+            </div>
+            <button type="submit" class="login_button">Login</button>
+            </center>
+        </div>
+    </form>
+</center>
+</body>
+</html>

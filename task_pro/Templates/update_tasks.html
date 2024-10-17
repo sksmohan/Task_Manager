@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .form_title{
+            color: yellow;
+        }
+        .form_labels{
+            font-weight: bold;
+            margin-right: 30px;
+            font-size: 17px;
+        }
+        .form_label_divs{
+            margin-bottom:20px ;
+            display: flex;
+            letter-spacing: 1px;
+        }
+        .submit_button{
+            padding:10px;
+            background-color: green;
+            color: white;
+            border-radius: 5px;
+            width: 100px;
+            margin-right: 25px;
+            font-weight: bold;
+
+        }
+        .back_button{
+            text-decoration: none;
+            padding:10px;
+            padding-right: 10px;
+            background-color: blue;
+            color: white;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+    </style>
+<body style="background-color: rgb(114, 94, 134);">
+    <section style="margin:0% 5%;background-color: white;padding:30px;border-radius:10px;">
+        <form action="" method="POST">
+            {% csrf_token %}
+            <div style="display:none;">
+                {{ form.title }}
+                {{ form.created_by }}
+                {{ form.project }}
+                {{ form.description }}
+                {{ form.due_date }}
+                {{ form.assigned_to }}
+            </div>
+            <div style="display:flex; justify-content:flex-start">
+                <div style="width: 500px;max-width: 500px;;">
+                    <div class="form_label_divs">
+                        <span class="form_labels">{{ form.title.label }}:</span> 
+                        {{ form.title.value }} <br>
+                    </div>
+                    <div class="form_label_divs">
+                        <span class="form_labels">{{ form.created_by.label }}:</span>
+                        {{ tasks.created_by }} <br>
+                    </div>
+                    <div class="form_label_divs">
+                        <span class="form_labels">{{ form.project.label }}:</span>
+                        {{ tasks.project }} <br>
+                    </div>
+                </div>
+                <div style="margin-left: 100px;">
+                    <div  class="form_label_divs">
+                        <span class="form_labels">{{ form.due_date.label }}:</span>
+                        {{ form.due_date.value }} <br>
+                    </div>
+                    <div  class="form_label_divs">
+                        <span class="form_labels">{{ form.status.label }} :</span>
+                        {{ form.status }}
+                    </div>
+                </div>
+            </div>
+            <p class="form_labels">{{ form.description.label }}</p>
+            <p>{{ form.description.value }}</p>
+
+            <p class="form_labels">{{ form.message.label }}</p>
+            <p style="width:500px;">{{ form.message }}</p>
+            <div style="position: relative;left:660px;bottom: 50px;width: 300px;">
+                <button type="submit" class="submit_button">Submit</button>
+                <a href="{% url 'dashboard' %}" class="back_button">   Back </a>
+            </div>
+        </form>
+    </section>
+    <script>
+        const statuselement = document.querySelector('.form_status');
+        console.log(statuselement)
+        if(statuselement.value === 'Completed'){
+            statuselement.disabled = true;
+            console.log('done')
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{% extends 'admin/change_form.html' %}
+
+{% load static %}
+{% load email_signal_tags %}
+
+{% block after_related_objects %}
+  {{ block.super }}
+  <input
+    type="hidden"
+    id='model_attrs_api_url'
+    value='{% model_attrs_url %}'
+  >
+{% endblock %}
