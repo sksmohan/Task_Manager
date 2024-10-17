@@ -12,7 +12,7 @@ from django_celery_beat.models import PeriodicTask, IntervalSchedule
 
 from django.core.mail import send_mail
 from django.conf import settings
-
+# epdoeodpdkp3dp3odpo3dpo3po
 # Create your views here.
 def dashboard(request):
     today = timezone.now().date()
