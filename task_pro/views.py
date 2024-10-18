@@ -183,5 +183,3 @@ def send_mail_(request):
     send_mail_view.delay()
     return HttpResponse('mail has been sent to your email')
 
-
-
