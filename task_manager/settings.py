@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-hqy-pfr#l#jg1$lcobe-lr8=t#sx8@fsk5^rhqyr0i4ufbsfb3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 import os
 
 # Application definition
@@ -41,8 +41,7 @@ INSTALLED_APPS = [
     'task_pro',
     'django_celery_results',
     'django_celery_beat',
-    'tinymce',
-    'email_signals'
+    'tinymce'
 ]
 
 MIDDLEWARE = [
@@ -120,17 +119,11 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
-
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static", 
 ]
 STATIC_ROOT = BASE_DIR/'staticfiles'
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
