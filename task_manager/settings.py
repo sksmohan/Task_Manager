@@ -77,8 +77,9 @@ TEMPLATES = [
 WSGI_APPLICATION = 'task_manager.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
+import pymysql
+pymysql.install_as_MySQLdb()
+
 
 DATABASES = {
     'default': {
@@ -87,9 +88,10 @@ DATABASES = {
         'USER': 'root',
         'PASSWORD': 'sks_admin@123',
         'HOST': 'localhost',
-        'PORT': '3306',
+        'PORT': '3307',
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -123,10 +125,9 @@ USE_TZ = True
 
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    BASE_DIR / "static", 
-]
-STATIC_ROOT = BASE_DIR/'staticfiles'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Adjust as needed
+
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
