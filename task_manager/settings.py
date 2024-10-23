@@ -75,23 +75,17 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'task_manager.wsgi.application'
-
+AUTH_USER_MODEL = 'task_pro.CustomUser' 
 
 import pymysql
 pymysql.install_as_MySQLdb()
 
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'task_manager',
-        'USER': 'root',
-        'PASSWORD': 'sks_admin@123',
-        'HOST': 'localhost',
-        'PORT': '3307',
+        'ENGINE': 'django.db.backends.sqlite3',  # Use SQLite3 backend
+        'NAME': BASE_DIR / 'db.sqlite3',         # Path to your SQLite database file
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -154,3 +148,6 @@ DEFAULT_FROM_EMAIL = 'raguv7218@gmail.com'
 
 
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR /'media'
+LOGIN_URL = '/' 

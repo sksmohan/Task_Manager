@@ -34,6 +34,12 @@
                 <a href="">Report</a>
                 <a href="{% url 'filter_search' %}">Filter</a>
                 <a href="{% url 'over_due' %}">Over_Due</a>
+                {% if request.user.is_superuser %} 
+                <a href="{% url 'add_user' %}">add_user</a>
+                <a href="{% url 'Team_mem' %}">Team</a>
+                <a href="{% url 'new_task_creation' %}">New_Task</a>
+                <a href="{% url 'project_creation' %}">Project</a>
+                {% endif %}
             </nav>
             {% block content %}
             <div class="dashboard">

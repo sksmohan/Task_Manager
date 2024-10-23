@@ -49,7 +49,7 @@
         <div class="login_dif">
             <center>
             <h1 style="color: white;text-shadow: 3px 3px 2px black;letter-spacing: 2px;;">LOGIN</h1>
-            {% if error %}<div style="color:red">Enter username and password correctly !</div>{% endif %}
+            {% if messages %}<div style="color:red">{% for message in messages %}{{ message }}{% endfor %}</div>{% endif %}
             <i class="bi bi-person-badge"></i>{{ form.username }} <br> <br>
             <i class="bi bi-file-lock"></i>{{ form.password }} <br>
             <div style="margin-bottom: 10px;;">

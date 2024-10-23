@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task | Team</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+</head>
+<body style="background-color: rgb(114, 94, 134);">
+    <section style="margin:0% 5%;background-color: white;padding:30px;border-radius:10px;">
+        <div class="dashboard">
+            <a href="{% url 'Team_mem' %}" style="position: relative;left:1000px; font-size:19px;">back</a>
+            {% if today_task %}
+            <p class="table_head">Today_task</p>
+            <div class="table_div1">
+                <table class="main-table">
+                    <th>S.No</th>
+                    <th>Task</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th>Created by</th>
+                    <th>Details</th>
+                    {% for i in today_task %}
+                        <tr>
+                            <td>{{ forloop.counter  }}</td>
+                            <td class="table_firstdata" >{{ i.title }}</td>
+                            <td>{{ i.due_date }}</td>
+                            <td class="status">{{ i.status }}</td>
+                            <td  class="table_firstdata">{{ i.created_by }}</td>
+                            <td><a href="{% url 'profile_task' i.id %}" >View</a></td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+            {% endif %}
+            {% if yesterday %}
+            <p class="table_head">Yesterday_task</p>
+            <div class="table_div1">
+                <table class="main-table">
+                    <th>S.No</th>
+                    <th>Task</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th>Created by</th>
+                    <th>Details</th>
+                    {% for i in yesterday %}
+                        <tr>
+                            <td>{{ forloop.counter  }}</td>
+                            <td class="table_firstdata">{{ i.title }}</td>
+                            <td>{{ i.due_date }}</td>
+                            <td class="status">{{ i.status }}</td>
+                            <td class="table_firstdata">{{ i.created_by }}</td>
+                            <td><a href="{% url 'profile_task' i.id %}" >View</a></td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+            {% endif %}
+            {% if this_week %}
+            <p class="table_head" >This_week</p>
+            <div class="table_div1">
+                <table class="main-table">
+                    <th>S.No</th>
+                    <th>Task</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th>Created by</th>
+                    <th>Details</th>
+                    {% for i in this_week %}
+                        <tr>
+                            <td>{{ forloop.counter  }}</td>
+                            <td class="table_firstdata">{{ i.title }}</td>
+                            <td>{{ i.due_date }}</td>
+                            <td class="status">{{ i.status }}</td>
+                            <td class="table_firstdata">{{ i.created_by }}</td>
+                            <td><a href="{% url 'profile_task' i.id %}" >View</a></td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+            {% endif %}
+            {% if last_week %}
+            <p class="table_head" >Last_week</p>
+                <div class="table_div1">
+                <table class="main-table">
+                    <th>S.No</th>
+                    <th>Task</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th>Created by</th>
+                    <th>Details</th>
+                    {% for i in last_week %}
+                        <tr>
+                            <td>{{ forloop.counter  }}</td>
+                            <td class="table_firstdata">{{ i.title }}</td>
+                            <td>{{ i.due_date }}</td>
+                            <td class="status">{{ i.status }}</td>
+                            <td class="table_firstdata">{{ i.created_by }}</td>
+                            <td><a href="{% url 'profile_task' i.id %}" >View</a></td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+            {% endif %}
+            {% if this_month %}
+            <p class="table_head">This_month</p>
+            <div class="table_div1">
+                <table class="main-table">
+                    <th>S.No</th>
+                    <th>Task</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th>Created by</th>
+                    <th>Details</th>
+                    {% for i in this_month %}
+                        <tr>
+                            <td>{{ forloop.counter  }}</td>
+                            <td class="table_firstdata">{{ i.title }}</td>
+                            <td>{{ i.due_date }}</td>
+                            <td class="status">{{ i.status }}</td>
+                            <td class="table_firstdata">{{ i.created_by }}</td>
+                            <td><a href="{% url 'profile_task' i.id %}" >View</a></td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+            {% endif %}
+            {% if last_month %}
+            <p class="table_head">Last_month</p>
+            <div class="table_div1">
+                <table class="main-table">
+                    <th>S.No</th>
+                    <th>Task</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th>Created by</th>
+                    <th>Details</th>
+                    {% for i in last_month %}
+                        <tr>
+                            <td>{{ forloop.counter  }}</td>
+                            <td class="table_firstdata">{{ i.title }}</td>
+                            <td>{{ i.due_date }}</td>
+                            <td class="status">{{ i.status }}</td>
+                            <td class="table_firstdata">{{ i.created_by }}</td>
+                            <td><a href="{% url 'profile_task' i.id %}" >View</a></td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+            {% endif %}
+        </div>
+        <span class="table_head">Total :  {{ total_count }}</span>
+    </section>
+</main>
+<script>
+    const status = document.querySelectorAll('.status');
+    status.forEach(e =>{
+        if(e.textContent.trim() === 'Pending'){
+            e.style.color='red'
+        }else if(e.textContent.trim() === 'Completed'){
+            e.style.color='green';
+        }else{
+            e.style.color = 'blue'
+        }
+    })
+</script>
+    </section>
+</body>
+</html>

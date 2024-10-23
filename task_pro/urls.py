@@ -12,6 +12,13 @@ urlpatterns =[
     path('over_due/',over_due,name='over_due'),
     path('test',test,name='test'),
     path('schedule_task',schedule_task,name="schedule_task"),
-    path("send_mail_",send_mail_,name='send_mail_')
-
+    path("send_mail_",send_mail_,name='send_mail_'),
+    path('mailattime',mailattime,name="mailattime"),
+    path('add_user',add_user,name="add_user"),
+    path('Team_mem',Team_mem,name='Team_mem'),
+    path('profile_update/<int:pk>/',profile_update,name='profile_update'),
+    path('profile_task/<int:pk>/',profile_task_update,name="profile_task"),
+    path('delete_task/<int:pk>',delete_task,name="delete_task"),
+    path('new_task_creation',new_task_creation,name="new_task_creation"),
+    path('project_creation',project_creation,name='project_creation')
 ]

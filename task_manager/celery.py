@@ -1,6 +1,6 @@
 from __future__ import absolute_import ,unicode_literals
 import os 
-
+from celery.schedules import crontab
 from celery import Celery
 from django.conf import settings
 
@@ -18,7 +18,10 @@ app.autodiscover_tasks()
 def debug_task(self):
     print(f'Request:{self.request}')
 
-
-app.conf.beat_schedule ={
-
+app.conf.beat_schedule={
+    'send-email-everyday-at-':{
+        'task':'task_pro.tasks.send_mail_view',
+        'schedule':crontab(hour=16,minute=58),
+        'args':(1000,)
+    }
 }
