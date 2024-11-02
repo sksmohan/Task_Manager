@@ -89,10 +89,21 @@
                         <span class="form_labels">{{ form.status.label }} :</span>
                         {{ form.status }}
                     </div>
+                    <div class="form_label_divs">
+                        <span class="form_labels">{{ form.document.label }}:</span>
+                        {{ form.document }}
+                        dwd
+                        {% if tasks.document %}
+                            <a href="{{ tasks.document.url }}" target="_blank">Existing</a>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <p class="form_labels">{{ form.description.label }}</p>
+                        <p>{{ form.description }}</p>
+                    </div>
                 </div>
             </div>
-            <p class="form_labels">{{ form.description.label }}</p>
-            <p>{{ form.description }}</p>
+            
             <p class="form_labels">{{ form.message.label }}</p>
             <p style="width:500px;">{{ form.message }}</p>
             <div style="position: relative;left:660px;bottom: 50px;width: 300px;">

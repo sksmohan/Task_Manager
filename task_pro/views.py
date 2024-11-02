@@ -38,8 +38,8 @@ def dashboard(request):
     last_month = Task.objects.filter(assigned_to=request.user.id,due_date__lt=start_of_lastweek)
     total_count = len(today_task)+len(yesterday)+len(this_week)+len(last_week)+len(this_month)+len(last_month)+len(last_month)
 
-    
-    department = Task.objects.filter(assigned_to=request.user.id).first()
+    username = Task.objects.filter(assigned_to=request.user.id).first()
+    department= request.user.department
     context ={
         'today_task':today_task,
         'yesterday':yesterday,
@@ -48,7 +48,8 @@ def dashboard(request):
         'this_month':this_month,
         'last_month':last_month,
         'department':department,
-        'total_count':total_count
+        'total_count':total_count,
+        'department':department
     }
 
     return render(request,'dashboard.html',context)
@@ -103,15 +104,25 @@ def specific_task(request,name):
 def update_task(request,pk):
     task = Task.objects.get(assigned_to=request.user.id,id=pk)
     if request.method == "POST":
-        form = taskform(data=request.POST,instance=task)
+        form = taskform(data=request.POST,files=request.FILES,instance=task)
+        name = request.POST.get("title")
+        audio_f = request.FILES.get('audio')
         if form.is_valid():
+            print('comes1')
+            if audio_f:
+                task.audio = audio_f
             form.save()
+            print('done111')
             return redirect('dashboard')
         else:
             print('Form is not valid:', form.errors)
     form = taskform(instance=task)
-    return render(request,'update_tasks.html',{'tasks':task,'form':form})
-
+    url = task.audio.url
+    split_= url.split('/')
+    url_to = len(split_[-1])
+    print(url_to)
+    return render(request,'update_tasks.html',{'tasks':task,'form':form,'url_to':url_to})
+ 
 @login_required
 def filter_search(request):
     department = Task.objects.filter(assigned_to=request.user.id).first()
@@ -137,7 +148,8 @@ def add_user(request):
         form = CustomUserForm(data=request.POST)
         if form.is_valid():
             form.save()
-            return redirect('dashboard')
+            messages.success(request,'User has been created successfully !')
+            return redirect('add_user')
         else:
             messages.error(request,'error')
             return render(request,'add_user.html',{'form':form})
@@ -155,7 +167,7 @@ def Team_mem(request):
         mem = Task.objects.filter(assigned_to=i)
         for k in mem:
             if k.status =="In progress":
-                in_prin_progressogess+=1
+                in_progress+=1
             else:
                 pending+=1
         mem_dict[i.username]['pending']=pending
@@ -216,7 +228,7 @@ def delete_task(request,pk):
     task = Task.objects.get(id=pk)
     user_id = task.assigned_to.id
     task.delete()
-    return redirect('profile_update',user_id)   
+    return redirect('profile_update',user_id)
 
 # pradeep bits consultancy
 
@@ -230,6 +242,7 @@ def new_task_creation(request):
         if form.is_valid():
             task_instance = form.save(commit=False)
             task_instance.assigned_to= assign
+            task_instance.created_by = request.user
             task_instance.save()
             messages.success(request,"Your Task has been created successfully!")
             return redirect('new_task_creation')
@@ -248,7 +261,32 @@ def project_creation(request):
     form = project_form()
     return render(request,'project_creation.html',{'form':form})
 
+def profile_view(request,pk=None):
+    user = CustomUser.objects.get(id=pk)
+    if request.method == "POST":
+        userupdate = CustomUserForm(data=request.POST,instance=user)
+        if userupdate.is_valid():
+            userupdate.save()
+            new_password = request.POST.get('password')
+            if new_password:
+                user.set_password(new_password)
+            return redirect('Team_mem')
+        else:
+            return render(request,'update_profile.html',{'form':userupdate})
+    userupdate = CustomUserForm(instance=user)
+    return render(request,'update_profile.html',{'form':userupdate,'id':user.id})
+
+
+def delete_user(request,pk):
+    user = CustomUser.objects.get(id=pk)
+    if user:
+        user.delete()
+        return redirect('Team_mem')
+    return HttpResponse('<h1>Sorry</h1>')
+
 def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
     if request.method == "POST":
         form = loginForm(data=request.POST)
         id = request.POST.get('username')
@@ -307,3 +345,4 @@ def mailattime(request):
     schedule,created=CrontabSchedule.objects.get_or_create(hour=16,minute=59)
     task = PeriodicTask.objects.create(crontab=schedule,name="mail_task"+"1",task='task_pro.task.send_mail_view')
     return HttpResponse("success")
+

@@ -29,11 +29,12 @@
 {% block content %}
 <div class="nw_project" style="margin-left:100px;margin-top:10px;">
     <div>
-        {% if messages %}
-            {% for message in messages %}
-                {{ message }}
-            {% endfor %}
-        {% endif %}
+        <p style="color:rgb(110, 236, 110);"> {% if messages %}
+                {% for message in messages %}
+                    {{ message }}
+                {% endfor %}
+            {% endif %}
+        </p>
     </div>
     <form action="" method="POST">
         {% csrf_token %}
@@ -53,5 +54,6 @@
             <button type="submit" class="create_button">Create</button>
         </table>
     </form>
+    
 </div>
 {% endblock %}

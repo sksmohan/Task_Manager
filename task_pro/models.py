@@ -9,8 +9,19 @@ from django.contrib.auth.models import AbstractUser
 
 class CustomUser(AbstractUser):
     choose = (
+        ('Accounts-AR','Accounts-AR'),
+        ('Accounts-Ap','Accounts-Ap'),
+        ('Accounts-MIS','Accounts-MIS'),
+        ('Accounts Manager','Accounts Manager'),
+        ('MIS','MIS'),
+        ('HR','HR'),
+        ('Sales Admin','Sales Admin'),
+        ('Zonals Managers','Zonals Managers'),
+        ('Branch Manager','Branch Manager'),
+        ('Employee','Employee'),
         ('IT','IT'),
-        ('Sales','Sales')
+        ('Sales','Sales'),
+
     )
     email = models.EmailField(blank=False, null=False)
     department = models.CharField(choices=choose,max_length=100,default='Sales')
@@ -38,8 +49,10 @@ class Task(models.Model):
     project = models.ForeignKey(Project,on_delete=models.CASCADE,null=True,blank=True)
     status = models.CharField(max_length=100,choices=STATUS_CHOICES,default='Pending')
     message = models.TextField(null=True,blank=True)
-    audio = models.FileField(upload_to='voice_messages/',null=True,blank=True)
-
+    document = models.FileField(upload_to='documenets/',null=True,blank=True)
+    audio = models.FileField(upload_to='audio/',null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
     def __str__(self):
         return self.title
 
@@ -49,6 +62,8 @@ def send_email_on_task_creation(sender,instance,created,**kwargs):
         subject = f'New task assigned : {instance.title}'
         message = f'you have been assigned a new task :{instance.description}\n\nDue Date :{instance.due_date}'
         recipient_list = [instance.assigned_to.email]
+
+        print(subject,message,recipient_list)
 
         send_mail(
             subject,

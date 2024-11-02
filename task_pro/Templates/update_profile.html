@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task | update</title>
+    <style>
+        .common_class{
+            padding:5px;
+            border-radius: 3px;
+        }
+        .form_title{
+            color: yellow;
+        }
+        .form_labels{
+            font-weight: bold;
+            margin-right: 30px;
+            font-size: 17px;
+        }
+        .form_label_divs{
+            margin-bottom:20px ;
+            display: flex;
+            letter-spacing: 1px;
+        }
+        .submit_button{
+            padding:10px;
+            background-color: green;
+            color: white;
+            border-radius: 5px;
+            width: 100px;
+            margin-right: 10px;
+            font-weight: bold;
+
+        }
+        .back_button{
+            text-decoration: none;
+            padding:10px;
+            padding-right: 10px;
+            background-color: blue;
+            color: white;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .delete_button{
+            padding:10px;
+            background-color:red;
+            color: white;
+            border-radius: 5px;
+            width: 100px;
+            margin-right: 25px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+    </style>
+<body style="background-color: rgb(114, 94, 134);">
+    <section style="margin:0% 5%;background-color: white;padding:30px;border-radius:10px;">
+        <form action="" method="POST">
+            {% csrf_token %}
+            <div style="display:flex; justify-content:flex-start">
+                <div style="width: 500px;max-width: 500px;;">
+                    <div class="form_label_divs">
+                        <span class="form_labels">{{ form.username.label }}:</span> 
+                        {{ form.username }} <br>
+                    </div>
+                    <div class="form_label_divs">
+                        <span class="form_labels">{{ form.email.label }}:</span>
+                        {{ form.email }} <br>
+                    </div>
+                    <div  class="form_label_divs">
+                        <span class="form_labels">{{ form.is_superuser.label }} :</span>
+                        {{ form.is_superuser }}
+                    </div>
+                    <div  class="form_label_divs">
+                        <span class="form_labels">{{ form.is_staff.label }}:</span>
+                        {{ form.is_staff }} <br>
+                    </div>
+                </div>
+                <div style="margin-left:10px;">
+                    <div  class="form_label_divs">
+                        <span class="form_labels">{{ form.department.label }}:</span>
+                        {{ form.department }} <br>
+                    </div>
+                    <div class="form_label_divs">
+                        <span class="form_labels">{{ form.password.label }}:</span>
+                        {{ form.password }} <br>
+                    </div>
+                    <div  class="form_label_divs">
+                        <span class="form_labels">{{ form.head.label }} :</span>
+                        {{ form.head }}
+                    </div>
+                    <div>
+                        <button type="submit" class="submit_button">Updte</button>
+                        <a href="{% url 'delete_user' id %}" class="delete_button">Delete</a>
+                        <a href="{% url 'Team_mem' %}" class="back_button">Back</a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </section>
+</body>
+</html>

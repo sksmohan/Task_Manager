@@ -18,7 +18,7 @@
             <div class="side-div1">
                 <img style="width:150px;height:55px;border-radius:50%;margin-left: 20px;"  src="{% static 'images/logo1.webp' %}" alt="Sri Krishna Sweets">
                 <p> <b style="color: white;"> <i class="bi bi-person-circle" style="margin-right: 5px;"></i>    User: </b>{{ request.user.username }} </p>
-                <p> <b style="color: white;"><i class="bi bi-people" style="margin-right: 5px;"></i>Department : </b>{{ department.department }}</p>
+                <p> <b style="color: white;"><i class="bi bi-people" style="margin-right: 5px;"></i>Department : </b>{{ department }}</p>
                 <p><b><a href="{% url 'logout' %}" style="color: white;"><i class="bi bi-box-arrow-right" style="margin-right: 5px;"></i> Log out</a></b></p>
             </div>
             <div class="side-div2">

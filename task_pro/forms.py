@@ -34,6 +34,7 @@ class CustomUserForm(forms.ModelForm):
             })
         }
 
+
     def clean_password(self):
         password = self.cleaned_data.get('password')
         print(f'Password entered: {password}')
@@ -80,7 +81,7 @@ class projectfilterform(forms.ModelForm):
 class taskform(forms.ModelForm):
     class Meta:
         model = Task
-        fields = ['title', 'description', 'assigned_to', 'due_date', 'status', 'created_by','message','project','audio']
+        fields = ['title', 'description', 'audio','assigned_to', 'due_date', 'status', 'created_by','message','project','document']
 
         widgets ={
             'title':forms.TextInput(attrs={
@@ -108,6 +109,9 @@ class taskform(forms.ModelForm):
             }),
             'message':forms.Textarea(attrs={
                 'class':'form_message'
+            }),
+            "document":forms.FileInput(attrs={
+                'class':'form_document'
             })
         }
 class Taskcreation_form(forms.ModelForm):

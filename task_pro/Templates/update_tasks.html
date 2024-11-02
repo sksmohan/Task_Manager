@@ -3,46 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <title>Document</title>
     <style>
-        .form_title{
+        .form_title {
             color: yellow;
         }
-        .form_labels{
+        .form_labels {
             font-weight: bold;
             margin-right: 30px;
             font-size: 17px;
         }
-        .form_label_divs{
-            margin-bottom:20px ;
+        .form_label_divs {
+            margin-bottom: 20px;
             display: flex;
             letter-spacing: 1px;
         }
-        .submit_button{
-            padding:10px;
+        .submit_button {
+            padding: 10px;
             background-color: green;
             color: white;
             border-radius: 5px;
             width: 100px;
             margin-right: 25px;
             font-weight: bold;
-
         }
-        .back_button{
+        .back_button {
             text-decoration: none;
-            padding:10px;
-            padding-right: 10px;
+            padding: 10px;
             background-color: blue;
             color: white;
             border-radius: 5px;
             font-weight: bold;
         }
+        .hidden { display: none; }
+        .icon { cursor: pointer; font-size: 24px; }
     </style>
+</head>
 <body style="background-color: rgb(114, 94, 134);">
-    <section style="margin:0% 5%;background-color: white;padding:30px;border-radius:10px;">
-        <form action="" method="POST">
+    <section style="margin: 0 5%; background-color: white; padding: 30px; border-radius: 10px;">
+        <form action="" method="POST" enctype="multipart/form-data">
             {% csrf_token %}
-            <div style="display:none;">
+            <div style="display: none;">
                 {{ form.title }}
                 {{ form.created_by }}
                 {{ form.project }}
@@ -50,8 +52,8 @@
                 {{ form.due_date }}
                 {{ form.assigned_to }}
             </div>
-            <div style="display:flex; justify-content:flex-start">
-                <div style="width: 500px;max-width: 500px;;">
+            <div style="display: flex; justify-content: flex-start">
+                <div style="width: 500px; max-width: 500px;">
                     <div class="form_label_divs">
                         <span class="form_labels">{{ form.title.label }}:</span> 
                         {{ form.title.value }} <br>
@@ -64,36 +66,147 @@
                         <span class="form_labels">{{ form.project.label }}:</span>
                         {{ tasks.project }} <br>
                     </div>
+                    <div>
+                        <span class="form_labels">{{ form.description.label }}:</span>
+                        <p style="text-align: justify;">Lorem ipsum, dolor sit amet consectetur adipisicing elit. Magni hic blanditiis officia, temporibus, impedit reprehenderit at nam reiciendis nemo eaque rerum dicta qui beatae? Doloribus nulla, omnis ex error recusandae facilis itaque tenetur unde, repellendus cum, voluptatum saepe illo vel delectus repellat quidem aut adipisci beatae deleniti iste consequatur? Non blanditiis expedita libero reiciendis quidem, deleniti corporis, ducimus itaque repellendus error eius iure tempore? Provident laboriosam quo velit quos rerum error quae modi doloribus labore incidunt sunt amet eveniet minima pariatur nam vero magni consequuntur, deserunt repellat saepe expedita unde quam, libero voluptatem! Hic, debitis? Blanditiis qui in praesentium non. </p><br>
+                    </div>
+
                 </div>
                 <div style="margin-left: 100px;">
-                    <div  class="form_label_divs">
+                    <div class="form_label_divs">
                         <span class="form_labels">{{ form.due_date.label }}:</span>
                         {{ form.due_date.value }} <br>
                     </div>
-                    <div  class="form_label_divs">
-                        <span class="form_labels">{{ form.status.label }} :</span>
+                    <div class="form_label_divs">
+                        <span class="form_labels">{{ form.status.label }}:</span>
                         {{ form.status }}
+                    </div>
+                    <div class="form_label_divs">
+                        <span class="form_labels">{{ form.document.label }}:</span>
+                        {{ form.document }}
+                        {% if tasks.document %}
+                        <a href="{{ tasks.document.url }}" target="_blank">Existing</a>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <p class="form_labels" style>Record:</p>
+                        <i id="recordBtn" class="fas fa-microphone icon"></i>
+                        <i id="stopBtn" class="fas fa-stop icon hidden"></i>
+                        <audio id="audioPreview" controls {% if url_to != 14 %} src="{{ tasks.audio.url }}" type="audio/webm" {% else %}  class="hidden" {% endif %}></audio>
+                        <span id="recordingTime" class="hidden">00:00</span>
+                        <span><button type="button" id="reRecordBtn" class="hidden">Re-record</button></span>
                     </div>
                 </div>
             </div>
-            <p class="form_labels">{{ form.description.label }}</p>
-            <p>{{ form.description.value }}</p>
-
             <p class="form_labels">{{ form.message.label }}</p>
-            <p style="width:500px;">{{ form.message }}</p>
-            <div style="position: relative;left:660px;bottom: 50px;width: 300px;">
+            <p style="width: 500px;">{{ form.message }}</p>
+            <div style="position: relative; left: 660px; bottom: 50px; width: 300px;">
                 <button type="submit" class="submit_button">Submit</button>
-                <a href="{% url 'dashboard' %}" class="back_button">   Back </a>
+                <a href="{% url 'dashboard' %}" class="back_button">Back</a>
             </div>
         </form>
     </section>
     <script>
         const statuselement = document.querySelector('.form_status');
-        console.log(statuselement)
-        if(statuselement.value === 'Completed'){
+        if (statuselement && statuselement.value === 'Completed') {
             statuselement.disabled = true;
-            console.log('done')
         }
+    
+        let mediaRecorder;
+        let audioChunks = [];
+        let recordedAudioBlob = null;  // Variable to store the audio blob
+        const audioPreview = document.getElementById('audioPreview');
+        const recordBtn = document.getElementById('recordBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const recordingTime = document.getElementById('recordingTime');
+        const reRecordBtn = document.getElementById('reRecordBtn');
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const taskid = "{{ tasks.id }}";
+    
+        let startTime;
+    
+        recordBtn.addEventListener('click', async () => {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.start();
+            recordBtn.classList.add('hidden');
+            stopBtn.classList.remove('hidden');
+            audioChunks = [];
+    
+            mediaRecorder.ondataavailable = event => {
+                audioChunks.push(event.data);
+            };
+    
+            mediaRecorder.onstop = () => {
+                recordedAudioBlob = new Blob(audioChunks, { type: 'audio/webm' }); // Store the audio blob
+                const audioUrl = URL.createObjectURL(recordedAudioBlob);
+                audioPreview.src = audioUrl;
+                audioPreview.classList.remove('hidden');
+                reRecordBtn.classList.remove('hidden');
+                stopBtn.classList.add('hidden');
+                recordingTime.classList.add('hidden');
+            };
+    
+            startTime = Date.now();
+            updateRecordingTime();
+        });
+    
+        stopBtn.addEventListener('click', () => {
+            if (mediaRecorder) {
+                mediaRecorder.stop();
+            }
+        });
+    
+        function updateRecordingTime() {
+            const interval = setInterval(() => {
+                if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+                    clearInterval(interval);
+                    return;
+                }
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                recordingTime.textContent = new Date(elapsed * 1000).toISOString().substr(11, 8);
+                recordingTime.classList.remove('hidden');
+            }, 1000);
+        }
+    
+        reRecordBtn.addEventListener('click', () => {
+            // audioPreview.classList.add('hidden');
+            reRecordBtn.classList.add('hidden');
+            recordingTime.classList.add('hidden');
+            recordBtn.classList.remove('hidden');
+            audioChunks = [];
+            recordedAudioBlob = null; // Reset the recorded audio blob
+        });
+    
+        // On form submission
+        const form = document.querySelector('form');
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault(); // Prevent default form submission
+    
+            const formData = new FormData(form); // Create FormData from the form
+    
+            // Append the recorded audio blob to the form data if it exists
+            if (recordedAudioBlob) {
+                formData.append('audio', recordedAudioBlob, 'recording.webm');
+            }
+    
+            const response = await fetch(`/update_task/${taskid}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                },
+                body: formData,
+            });
+    
+            if (response.ok) {
+                console.log('Form submitted successfully!');
+                // Optionally clear the audio blob after submission
+                recordedAudioBlob = null;
+                window.location.href = "{% url 'dashboard' %}";
+            } else {
+                console.log('Error submitting form');
+            }
+        });
     </script>
 </body>
 </html>

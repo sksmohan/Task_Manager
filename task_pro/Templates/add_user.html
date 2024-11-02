@@ -16,6 +16,14 @@
 {% endblock %}
 {% block content %}
 <div class="add_user_div">
+    <div>
+        <p style="color:rgb(110, 236, 110);"> {% if messages %}
+                {% for message in messages %}
+                    {{ message }}
+                {% endfor %}
+            {% endif %}
+        </p>
+    </div>
     <form action="" method="POST">
         {% csrf_token %}
         <table cellspacing=20>

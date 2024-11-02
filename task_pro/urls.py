@@ -20,5 +20,7 @@ urlpatterns =[
     path('profile_task/<int:pk>/',profile_task_update,name="profile_task"),
     path('delete_task/<int:pk>',delete_task,name="delete_task"),
     path('new_task_creation',new_task_creation,name="new_task_creation"),
-    path('project_creation',project_creation,name='project_creation')
+    path('project_creation',project_creation,name='project_creation'),
+    path("profile_view/<int:pk>/",profile_view,name='profile_view'),
+    path('delete_user/<int:pk>',delete_user,name='delete_user')
 ]

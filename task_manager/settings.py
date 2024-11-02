@@ -83,7 +83,10 @@ pymysql.install_as_MySQLdb()
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',  # Use SQLite3 backend
-        'NAME': BASE_DIR / 'db.sqlite3',         # Path to your SQLite database file
+        'NAME': BASE_DIR / 'db.sqlite3',      # Path to your SQLite database file
+        'OPTIONS': {
+            'timeout': 30,  # Increase timeout (in seconds)
+        }
     }
 }
 
@@ -138,7 +141,7 @@ from django.core.mail import send_mail
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # Corrected here
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
