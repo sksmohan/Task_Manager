@@ -117,10 +117,7 @@ def update_task(request,pk):
         else:
             print('Form is not valid:', form.errors)
     form = taskform(instance=task)
-    url = task.audio.url
-    split_= url.split('/')
-    url_to = len(split_[-1])
-    print(url_to)
+    url_to = 0
     return render(request,'update_tasks.html',{'tasks':task,'form':form,'url_to':url_to})
  
 @login_required

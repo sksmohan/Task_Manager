@@ -81,7 +81,7 @@ class projectfilterform(forms.ModelForm):
 class taskform(forms.ModelForm):
     class Meta:
         model = Task
-        fields = ['title', 'description', 'audio','assigned_to', 'due_date', 'status', 'created_by','message','project','document']
+        fields = ['title', 'description','assigned_to', 'due_date', 'status', 'created_by','message','project','document']
 
         widgets ={
             'title':forms.TextInput(attrs={

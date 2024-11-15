@@ -92,7 +92,7 @@
                         <p class="form_labels" style>Record:</p>
                         <i id="recordBtn" class="fas fa-microphone icon"></i>
                         <i id="stopBtn" class="fas fa-stop icon hidden"></i>
-                        <audio id="audioPreview" controls {% if url_to != 14 %} src="{{ tasks.audio.url }}" type="audio/webm" {% else %}  class="hidden" {% endif %}></audio>
+                        <audio id="audioPreview" controls {% if url_to %} src="{{ tasks.audio.url }}" type="audio/webm" {% else %}  class="hidden" {% endif %}></audio>
                         <span id="recordingTime" class="hidden">00:00</span>
                         <span><button type="button" id="reRecordBtn" class="hidden">Re-record</button></span>
                     </div>
