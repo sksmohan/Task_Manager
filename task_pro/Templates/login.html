@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+{% load static %}
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -48,6 +49,7 @@
         {% csrf_token %}
         <div class="login_dif">
             <center>
+            <img style="width:150px;height:45px;border-radius:50%;"  src="{% static 'images/logo1.webp' %}" alt="Sri Krishna Sweets">
             <h1 style="color: white;text-shadow: 3px 3px 2px black;letter-spacing: 2px;;">LOGIN</h1>
             {% if messages %}<div style="color:red">{% for message in messages %}{{ message }}{% endfor %}</div>{% endif %}
             <i class="bi bi-person-badge"></i>{{ form.username }} <br> <br>

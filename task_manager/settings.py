@@ -82,13 +82,15 @@ pymysql.install_as_MySQLdb()
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'mine11',
+        'NAME': 'first',
         'USER': 'root',
-        'PASSWORD': 'sks_admin@123',
+        'PASSWORD': 'root@123',
         'HOST': 'localhost',
-        'PORT': '3307',
+        'PORT': '3306',
     }
 }
+
+
 
 
 # Password validation

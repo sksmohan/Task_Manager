@@ -101,7 +101,7 @@ class taskform(forms.ModelForm):
                 'readonly': 'readonly'
             }),
             'status':forms.Select(attrs={
-                'class':'form_status'
+                'class':'form_status status_selection'
             }),
             'created_by':forms.TextInput(attrs={
                 'class':'form_created_by',

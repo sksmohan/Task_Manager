@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+{% load static %}
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -38,6 +39,20 @@
         }
         .hidden { display: none; }
         .icon { cursor: pointer; font-size: 24px; }
+        #task_selection{
+            width: 200px;
+            max-height: 100px;
+            border: 2px sol;
+        }
+        .specific_task_user{
+            max-height: 100px;
+        }
+        .Depend_on_div{
+            margin-bottom: 10px;
+        }
+        .specific_task_user{
+            margin-top:10px;
+        }
     </style>
 </head>
 <body style="background-color: rgb(114, 94, 134);">
@@ -68,18 +83,40 @@
                     </div>
                     <div>
                         <span class="form_labels">{{ form.description.label }}:</span>
-                        <p style="text-align: justify;">Lorem ipsum, dolor sit amet consectetur adipisicing elit. Magni hic blanditiis officia, temporibus, impedit reprehenderit at nam reiciendis nemo eaque rerum dicta qui beatae? Doloribus nulla, omnis ex error recusandae facilis itaque tenetur unde, repellendus cum, voluptatum saepe illo vel delectus repellat quidem aut adipisci beatae deleniti iste consequatur? Non blanditiis expedita libero reiciendis quidem, deleniti corporis, ducimus itaque repellendus error eius iure tempore? Provident laboriosam quo velit quos rerum error quae modi doloribus labore incidunt sunt amet eveniet minima pariatur nam vero magni consequuntur, deserunt repellat saepe expedita unde quam, libero voluptatem! Hic, debitis? Blanditiis qui in praesentium non. </p><br>
+                        <p style="text-align: justify;">{{ form.description.value }}</p><br>
                     </div>
-
                 </div>
                 <div style="margin-left: 100px;">
                     <div class="form_label_divs">
-                        <span class="form_labels">{{ form.due_date.label }}:</span>
-                        {{ form.due_date.value }} <br>
+                        <span class="form_labels">{{ form.due_date.label }}:
+                            {{ form.due_date.value }} <br>
+                        </span>
+                            {% if tasks.status != "Completed" %}
+                                {% if tasks.waiting_time_start_at %}
+                                    <span style="color: red;font-weight: bold;background-color: rgb(255, 237, 237);box-shadow: 3px 3px 15px 2px red;padding:2px;">
+                                        Waiting since : {{ tasks.waiting_time_start_at }}
+                                    </span>
+                                {% endif %}
+                            {% endif %}
                     </div>
                     <div class="form_label_divs">
-                        <span class="form_labels">{{ form.status.label }}:</span>
+                        <span class="form_labels ">{{ form.status.label }}:</span>
                         {{ form.status }}
+                    </div>
+                    <div class="Depend_on_div">
+                        <label for="Users" class="form_labels">Depend_on:</label>
+                        <select name="Users" id="selected_user">
+                            <option value="ss">Select User</option>
+                            {% for user in users %}
+                                <option value="{{ user.id }}">{{ user }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="specific_task_user">
+                            <label for="task_selection" class="form_labels">Select Task:</label>
+                            <select name="task_selection" id="task_selection">
+                                <option value="">Select User Task</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="form_label_divs">
                         <span class="form_labels">{{ form.document.label }}:</span>
@@ -90,11 +127,14 @@
                     </div>
                     <div>
                         <p class="form_labels" style>Record:</p>
-                        <i id="recordBtn" class="fas fa-microphone icon"></i>
+                        <!-- Show the microphone icon for new recordings -->
+                        <i id="recordBtn" class="fas fa-microphone icon {% if tasks.audio %}hidden{% endif %}"></i>
                         <i id="stopBtn" class="fas fa-stop icon hidden"></i>
-                        <audio id="audioPreview" controls {% if url_to %} src="{{ tasks.audio.url }}" type="audio/webm" {% else %}  class="hidden" {% endif %}></audio>
+                        <audio id="audioPreview" controls {% if tasks.audio %} src="{{ tasks.audio.url }}" {% else %} class="hidden" {% endif %}></audio>
                         <span id="recordingTime" class="hidden">00:00</span>
-                        <span><button type="button" id="reRecordBtn" class="hidden">Re-record</button></span>
+                        <span>
+                            <button type="button" id="reRecordBtn" class="{% if tasks.audio %}hidden{% endif %}">Re-record</button>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -106,107 +146,36 @@
             </div>
         </form>
     </section>
-    <script>
-        const statuselement = document.querySelector('.form_status');
-        if (statuselement && statuselement.value === 'Completed') {
-            statuselement.disabled = true;
-        }
-    
-        let mediaRecorder;
-        let audioChunks = [];
-        let recordedAudioBlob = null;  // Variable to store the audio blob
-        const audioPreview = document.getElementById('audioPreview');
-        const recordBtn = document.getElementById('recordBtn');
-        const stopBtn = document.getElementById('stopBtn');
-        const recordingTime = document.getElementById('recordingTime');
-        const reRecordBtn = document.getElementById('reRecordBtn');
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-        const taskid = "{{ tasks.id }}";
-    
-        let startTime;
-    
-        recordBtn.addEventListener('click', async () => {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            mediaRecorder.start();
-            recordBtn.classList.add('hidden');
-            stopBtn.classList.remove('hidden');
-            audioChunks = [];
-    
-            mediaRecorder.ondataavailable = event => {
-                audioChunks.push(event.data);
-            };
-    
-            mediaRecorder.onstop = () => {
-                recordedAudioBlob = new Blob(audioChunks, { type: 'audio/webm' }); // Store the audio blob
-                const audioUrl = URL.createObjectURL(recordedAudioBlob);
-                audioPreview.src = audioUrl;
-                audioPreview.classList.remove('hidden');
-                reRecordBtn.classList.remove('hidden');
-                stopBtn.classList.add('hidden');
-                recordingTime.classList.add('hidden');
-            };
-    
-            startTime = Date.now();
-            updateRecordingTime();
-        });
-    
-        stopBtn.addEventListener('click', () => {
-            if (mediaRecorder) {
-                mediaRecorder.stop();
-            }
-        });
-    
-        function updateRecordingTime() {
-            const interval = setInterval(() => {
-                if (!mediaRecorder || mediaRecorder.state === 'inactive') {
-                    clearInterval(interval);
-                    return;
-                }
-                const elapsed = Math.floor((Date.now() - startTime) / 1000);
-                recordingTime.textContent = new Date(elapsed * 1000).toISOString().substr(11, 8);
-                recordingTime.classList.remove('hidden');
-            }, 1000);
-        }
-    
-        reRecordBtn.addEventListener('click', () => {
-            // audioPreview.classList.add('hidden');
-            reRecordBtn.classList.add('hidden');
-            recordingTime.classList.add('hidden');
-            recordBtn.classList.remove('hidden');
-            audioChunks = [];
-            recordedAudioBlob = null; // Reset the recorded audio blob
-        });
-    
-        // On form submission
-        const form = document.querySelector('form');
-        form.addEventListener('submit', async (event) => {
-            event.preventDefault(); // Prevent default form submission
-    
-            const formData = new FormData(form); // Create FormData from the form
-    
-            // Append the recorded audio blob to the form data if it exists
-            if (recordedAudioBlob) {
-                formData.append('audio', recordedAudioBlob, 'recording.webm');
-            }
-    
-            const response = await fetch(`/update_task/${taskid}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrfToken,
-                },
-                body: formData,
-            });
-    
-            if (response.ok) {
-                console.log('Form submitted successfully!');
-                // Optionally clear the audio blob after submission
-                recordedAudioBlob = null;
-                window.location.href = "{% url 'dashboard' %}";
-            } else {
-                console.log('Error submitting form');
-            }
-        });
-    </script>
+    <script src="{% static 'js/update_task.js' %}"></script>
+
 </body>
 </html>
+<!-- <script>
+    // Form submission
+    const form = document.querySelector('form');
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault(); // Prevent default form submission
+
+        const formData = new FormData(form); // Create FormData from the form
+
+        // Append the recorded audio blob to the form data if it exists
+        if (recordedAudioBlob) {
+            formData.append('audio', recordedAudioBlob, 'recording.webm');
+        }
+
+        const response = await fetch(`/update_task/{{ tasks.id }}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+            body: formData,
+        });
+
+        if (response.ok) {
+            console.log('Form submitted successfully!');
+            window.location.href = "{% url 'dashboard' %}";
+        } else {
+            console.error('Error submitting form');
+        }
+    });
+</script> -->

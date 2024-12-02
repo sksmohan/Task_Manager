@@ -11,6 +11,16 @@
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
     {% endblock %}
 </head>
+<style>
+    .status_warning{
+    background-color: red;
+    color: white;
+    border-radius: 10px;
+    box-shadow: 1px 1px 10px 1px red;
+    padding: 2px;
+    }
+
+</style>
 <body>
     <header></header>
     <main>
@@ -51,15 +61,31 @@
                         <th>Task</th>
                         <th>Due Date</th>
                         <th>Status</th>
-                        <th>Created by</th>
+                        <th>Waiting</th>
+                        <th>Stuck Time</th>
                         <th>Details</th>
                         {% for i in today_task %}
                             <tr>
                                 <td>{{ forloop.counter  }}</td>
-                                <td class="table_firstdata" >{{ i.title }}</td>
+                                <td class="table_firstdata">{{ i.title }}</td>
                                 <td>{{ i.due_date }}</td>
-                                <td class="status">{{ i.status }}</td>
-                                <td  class="table_firstdata">{{ i.created_by }}</td>
+                                {% if i.incomplete %}
+                                    <td ><span class="status_warning" style="width: 100px;">{{ i.status }}</span></td>
+                                    <td><span class="waiting_user">{{ i.waiting_for_username }}</span></td>
+                                {% else %}
+                                    <td class="status">{{ i.status }}</td>  
+                                    <td><span></span></td>
+                                {% endif %}
+                                <td>
+                                    <div style="display: flex;flex-direction: column;">
+                                        {% if i.struck_time_start_at %} 
+                                            <span style="font-size:12px;"> <img src="{% static 'images/startbutt.jpg' %}" alt="" style="width: 10px;height: 10px;"> {{ i.struck_time_start_at }}</span>
+                                        {% endif %}
+                                        {% if i.stuck_time_end_at %}
+                                            <span style="font-size:12px;"> <img src="{% static 'images/stopbutt.jpg' %}" alt="" style="width: 10px;height: 10px;"> {{ i.stuck_time_end_at }}</span>
+                                        {% endif %}
+                                    </div>    
+                                </td>
                                 <td><a href="{% url 'update_task' i.id %}" >View</a></td>
                             </tr>
                         {% endfor %}
@@ -82,7 +108,7 @@
                                 <td class="table_firstdata">{{ i.title }}</td>
                                 <td>{{ i.due_date }}</td>
                                 <td class="status">{{ i.status }}</td>
-                                <td class="table_firstdata">{{ i.created_by }}</td>
+                                <td>{{ i.created_by }}</td>
                                 <td><a href="{% url 'update_task' i.id %}" >View</a></td>
                             </tr>
                         {% endfor %}
@@ -94,25 +120,41 @@
                 <div class="table_div1">
                     <table class="main-table">
                         <th>S.No</th>
-                        <th>Task</th>
+                        <th>Task</th>   
                         <th>Due Date</th>
                         <th>Status</th>
-                        <th>Created by</th>
+                        <th>waiting_for </th>
+                        <th>Struck Time</th>
                         <th>Details</th>
-                        {% for i in this_week %}
+                        {% for i in this_week %}    
                             <tr>
                                 <td>{{ forloop.counter  }}</td>
                                 <td class="table_firstdata">{{ i.title }}</td>
                                 <td>{{ i.due_date }}</td>
-                                <td class="status">{{ i.status }}</td>
-                                <td class="table_firstdata">{{ i.created_by }}</td>
+                                {% if i.incomplete %}
+                                    <td ><span class="status_warning" style="width: 100px;">{{ i.status }}</span></td>
+                                    <td><span id="waiting_user">{{ i.waiting_for }}</span></td>
+                                {% else %}
+                                    <td class="status">{{ i.status }}</td>  
+                                    <td><span></span></td>
+                                {% endif %}
+                                <td>
+                                    <div style="display: flex;flex-direction: column;">
+                                        {% if i.struck_time_start_at %} 
+                                            <span>{{ i.struck_time_start_at }}</span>
+                                        {% endif %}
+                                        {% if i.stuck_time_end_at %}
+                                            <span>{{ i.stuck_time_end_at }}</span>
+                                        {% endif %}
+                                    </div>    
+                                </td>
                                 <td><a href="{% url 'update_task' i.id %}" >View</a></td>
                             </tr>
-                        {% endfor %}
-                    </table>
-                </div>
+                        {% endfor %}        
+                    </table>    
+                </div>      
                 {% endif %}
-                {% if last_week %}
+                {% if last_week %}  
                 <p class="table_head" >Last_week</p>
                     <div class="table_div1">
                     <table class="main-table">
@@ -128,7 +170,7 @@
                                 <td class="table_firstdata">{{ i.title }}</td>
                                 <td>{{ i.due_date }}</td>
                                 <td class="status">{{ i.status }}</td>
-                                <td class="table_firstdata">{{ i.created_by }}</td>
+                                <td>{{ i.created_by }}</td>
                                 <td><a href="{% url 'update_task' i.id %}" >View</a></td>
                             </tr>
                         {% endfor %}
@@ -151,7 +193,7 @@
                                 <td class="table_firstdata">{{ i.title }}</td>
                                 <td>{{ i.due_date }}</td>
                                 <td class="status">{{ i.status }}</td>
-                                <td class="table_firstdata">{{ i.created_by }}</td>
+                                <td>{{ i.created_by }}</td>
                                 <td><a href="{% url 'update_task' i.id %}" >View</a></td>
                             </tr>
                         {% endfor %}
@@ -174,7 +216,7 @@
                                 <td class="table_firstdata">{{ i.title }}</td>
                                 <td>{{ i.due_date }}</td>
                                 <td class="status">{{ i.status }}</td>
-                                <td class="table_firstdata">{{ i.created_by }}</td>
+                                <td>{{ i.created_by }}</td>
                                 <td><a href="{% url 'update_task' i.id %}" >View</a></td>
                             </tr>
                         {% endfor %}

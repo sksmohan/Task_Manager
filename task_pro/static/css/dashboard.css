@@ -49,7 +49,7 @@ nav a:hover{
 
 }
 .side-bar-menu:hover{
-    background-color: rgb(114, 94, 134);
+    background-color: rgb(114, 94, 134); 
     border-color: white;
 }
 
@@ -85,9 +85,10 @@ nav a:hover{
     width: 700px;;
 }
 .table_firstdata{
-    width:150px;
-    max-width: 150px;
+    width:350px;
+    max-width: 350px;
     overflow-x: auto;
+    text-align: left;
    
 }
 .table_div1{
@@ -112,4 +113,16 @@ nav a{
     border-radius: 5px;
     margin-right: 10px;
     color: black;
+}
+.status_warning{
+    background-color: red;
+    color: white;
+    border-radius: 10px;
+}
+@media (min-width: 1681px) and (max-width: 1920px) {
+    .second-sec{
+        height: 970px;
+        width:80%;
+
+    }
 }

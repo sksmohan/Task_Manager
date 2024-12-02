@@ -5,7 +5,6 @@ from .models import Task,Project
 from django.utils import timezone
 
 
-
 @shared_task(bind=True)
 def test_func(self):
     for i in range(10):
@@ -34,7 +33,7 @@ def send_mail_view(self,args):
             created_by=t.created_by,
             due_date=today,
             project=t.project,
-            status=t.status
+            status='Pending'
         )
         task_creation.save()
         print('done')

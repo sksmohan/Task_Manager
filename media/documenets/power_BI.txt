@@ -1,0 +1,11 @@
+total sales = SUMX(
+	 sales,
+	 sales[unit] * sales[price]
+)
+
+
+total units = SUM(sales[units])
+
+total transactions = COUNTROWS(sales)
+
+unique selling date = DISTINCTCOUNT(sales[date])

@@ -22,5 +22,7 @@ urlpatterns =[
     path('new_task_creation',new_task_creation,name="new_task_creation"),
     path('project_creation',project_creation,name='project_creation'),
     path("profile_view/<int:pk>/",profile_view,name='profile_view'),
-    path('delete_user/<int:pk>',delete_user,name='delete_user')
+    path('delete_user/<int:pk>',delete_user,name='delete_user'),
+    path("get-tasks-for-user/<int:user_id>/",get_tasks_for_user,name="get_tasks_for_user"),
+    path('waiting_user/<int:id>/',waiting_user_data,name="waiting_user")
 ]

@@ -20,8 +20,8 @@ def debug_task(self):
 
 app.conf.beat_schedule={
     'send_mail_everyday-at':{
-        'task':'task_pro.task.send_mail_view',
-        'schedule': crontab(hour=11,minute=16),
+        'task':'task_pro.task.send_mail_view',  
+        'schedule': crontab(hour=12,minute=13),
         'args':(1000,)
     }
 }

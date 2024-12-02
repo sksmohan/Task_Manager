@@ -21,12 +21,10 @@ class CustomUser(AbstractUser):
         ('Employee','Employee'),
         ('IT','IT'),
         ('Sales','Sales'),
-
     )
     email = models.EmailField(blank=False, null=False)
     department = models.CharField(choices=choose,max_length=100,default='Sales')
     head = models.BooleanField(default=False)
-
 
 class Project(models.Model):
     project_name = models.CharField(max_length=100)
@@ -40,7 +38,10 @@ class Task(models.Model):
     STATUS_CHOICES  = (
         ('Pending','Pending'),
         ('In progress','In progress'),
-        ('Completed','Completed'))
+        ('Completed','Completed'),
+        ('Stuck','Stuck'))
+
+    task_created_at = models.DateTimeField(auto_now_add=True)
     title= models.CharField(max_length=200)
     description = models.TextField()
     assigned_to = models.ForeignKey(CustomUser,on_delete=models.CASCADE,null=True,related_name ="assigned_to")
@@ -51,24 +52,17 @@ class Task(models.Model):
     message = models.TextField(null=True,blank=True)
     document = models.FileField(upload_to='documenets/',null=True,blank=True)
     audio = models.FileField(upload_to='audio/',null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+
+    task_depended_on = models.IntegerField(null=True,blank=True)
+    struck_time_start_at = models.DateTimeField(max_length=100,null=True,blank=True)
+    stuck_time_end_at = models.DateTimeField(null=True,blank=True)
+    incomplete = models.BooleanField(default=False)
     
+    waiting_for = models.IntegerField(null=True,blank=True)
+    waiting_for_username = models.CharField(max_length=100,null=True,blank=True)
+    waiting_time_start_at = models.DateTimeField(null=True,blank=True)         
+    task_completed_at = models.DateTimeField(null=True,blank=True)
+
+
     def __str__(self):
         return self.title
-
-@receiver(post_save,sender=Task)
-def send_email_on_task_creation(sender,instance,created,**kwargs):
-    if created:
-        subject = f'New task assigned : {instance.title}'
-        message = f'you have been assigned a new task :{instance.description}\n\nDue Date :{instance.due_date}'
-        recipient_list = [instance.assigned_to.email]
-
-        print(subject,message,recipient_list)
-
-        send_mail(
-            subject,
-            message,
-            settings.DEFAULT_FROM_EMAIL,
-            recipient_list,
-            fail_silently = False
-        )
