@@ -78,18 +78,20 @@ AUTH_USER_MODEL = 'task_pro.CustomUser'
 
 import pymysql
 pymysql.install_as_MySQLdb()
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'first',
+        'NAME': 'mine11',
         'USER': 'root',
-        'PASSWORD': 'root@123',
+        'PASSWORD': 'sks_admin@123',
         'HOST': 'localhost',
-        'PORT': '3306',
+        'PORT': '3307',
     }
 }
 
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 512545
+FILE_UPLOAD_MAX_MEMORY_SIZE = 512545
 
 
 

@@ -14,21 +14,22 @@ def incomplete_change(sender,instance,created,**kwargs):
             task = Task.objects.filter(id=instance.id).first()
             if instance.incomplete:
                 task.incomplete =False
-                task_completed_time = datetime.now()
-                format_completed_time = task_completed_time.strftime("%Y-%m-%d %H:%M:%S")
-                task.task_completed_at = task_completed_time
+                task.task_completed_at = datetime.now()
+                current_date = datetime.now().date()
+                due_date = task.due_date
+                task.is_late = current_date > due_date
                 
-
                 waiting_user = Task.objects.filter(id=instance.waiting_for).first()
                 print(waiting_user)
-                waiting_user.stuck_time_end_at = format_completed_time
+                waiting_user.stuck_time_end_at = datetime.now()
                 waiting_user.save()
                 task.save()
                 return
             else:
-                task_completed_time = datetime.now()
-                format_completed_time = task_completed_time.strftime("%Y-%m-%d %H:%M:%S")
-                task.task_completed_at = task_completed_time
+                task.task_completed_at = datetime.now()
+                current_date = datetime.now().date()
+                due_date = task.due_date
+                task.is_late = current_date > due_date
                 task.save()
                 return
         if status == "Stuck":

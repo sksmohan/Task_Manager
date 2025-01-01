@@ -1,4 +1,4 @@
-from .task import test_func ,send_mail_view
+from .task import send_mail_view
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from datetime import datetime
@@ -7,7 +7,7 @@ from django.shortcuts import render , redirect
 from django.http import HttpResponse,JsonResponse
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate, login, logout
-from .models import Task,Project,CustomUser
+from .models import Task,Project,CustomUser,multi_document
 from .forms import taskform ,loginForm,projectfilterform,CustomUserForm,Taskcreation_form,project_form
 from datetime import datetime ,timedelta
 from django.utils import timezone
@@ -38,7 +38,12 @@ def dashboard(request):
     this_month = Task.objects.filter(assigned_to=request.user.id,due_date__gte=start_of_month,due_date__lte=end_of_month)
     last_month = Task.objects.filter(assigned_to=request.user.id,due_date__lt=start_of_lastweek)
     total_count = len(today_task)+len(yesterday)+len(this_week)+len(last_week)+len(this_month)+len(last_month)+len(last_month)
-
+    users_project = Task.objects.filter(assigned_to=request.user.id).distinct()
+    project_list = {}
+    for task in users_project:
+        if task.project.project_name not in project_list:
+            task_count = len(Task.objects.filter(project=task.project,assigned_to=request.user.id))
+            project_list[task.project.project_name] = task_count
     username = Task.objects.filter(assigned_to=request.user.id).first()
     department= request.user.department
     context ={
@@ -50,7 +55,8 @@ def dashboard(request):
         'last_month':last_month,
         'department':department,
         'total_count':total_count,
-        'department':department
+        'department':department,
+        'projects':project_list
     }
 
     return render(request,'dashboard.html',context)
@@ -69,8 +75,15 @@ def specific_task(request,name):
     start_of_lastmonth = end_of_lastmonth - timedelta(days=29)
 
     department = Task.objects.filter(assigned_to=request.user.id).first()
-
+    users_project = Task.objects.filter(assigned_to=request.user.id).distinct()
+    project_list = {}
+    for task in users_project:
+        if task.project.project_name not in project_list:
+            task_count = len(Task.objects.filter(project=task.project,assigned_to=request.user.id))
+            project_list[task.project.project_name] = task_count
+    
     if name =="Pending" or name =="In progress" or name =="Completed":
+        project_name = ''
         today_task = Task.objects.filter(assigned_to=request.user.id,due_date=today,status = name)
         yesterday = Task.objects.filter(assigned_to =request.user.id,due_date=yesterday,status = name)
         this_week = Task.objects.filter(assigned_to=request.user.id,due_date__gte=start_of_week,due_date__lte=end_of_week,status = name)
@@ -78,7 +91,8 @@ def specific_task(request,name):
         this_month = Task.objects.filter(assigned_to=request.user.id,due_date__gte=start_of_month,due_date__lte=end_of_month,status = name)
         last_month = Task.objects.filter(assigned_to=request.user.id,due_date__lt=start_of_lastweek,status = name)
         total_count = len(today_task)+len(yesterday)+len(this_week)+len(last_week)+len(this_month)+len(last_month)+len(last_month)
-    else:
+    elif name == 'all':
+        project_name = ""
         today_task = Task.objects.filter(assigned_to=request.user.id,due_date=today)
         yesterday = Task.objects.filter(assigned_to =request.user.id,due_date=yesterday)
         this_week = Task.objects.filter(assigned_to=request.user.id,due_date__gte=start_of_week,due_date__lte=end_of_week)
@@ -86,8 +100,18 @@ def specific_task(request,name):
         this_month = Task.objects.filter(assigned_to=request.user.id,due_date__gte=start_of_month,due_date__lte=end_of_month)
         last_month = Task.objects.filter(assigned_to=request.user.id,due_date__lt=start_of_lastweek)
         total_count = len(today_task)+len(yesterday)+len(this_week)+len(last_week)+len(this_month)+len(last_month)+len(last_month)
+    else:
+        project_id = Project.objects.filter(project_name=name).first()
+        project_name = name
+        today_task = Task.objects.filter(project=project_id.id,assigned_to=request.user.id,due_date=today)
+        yesterday = Task.objects.filter(project=project_id.id,assigned_to =request.user.id,due_date=yesterday)
+        this_week = Task.objects.filter(project=project_id.id,assigned_to=request.user.id,due_date__gte=start_of_week,due_date__lte=end_of_week)
+        last_week = Task.objects.filter(project=project_id.id,assigned_to=request.user.id,due_date__gte=start_of_lastweek,due_date__lte=end_of_lastweek)
+        this_month = Task.objects.filter(project=project_id.id,assigned_to=request.user.id,due_date__gte=start_of_month,due_date__lte=end_of_month)
+        last_month = Task.objects.filter(project=project_id.id,assigned_to=request.user.id,due_date__lt=start_of_lastweek)
+        total_count = len(today_task)+len(yesterday)+len(this_week)+len(last_week)+len(this_month)+len(last_month)+len(last_month)
 
-    department = Task.objects.filter(assigned_to=request.user.id).first()
+    department= request.user.department
     context ={
         'today_task':today_task,
         'yesterday':yesterday,
@@ -96,9 +120,10 @@ def specific_task(request,name):
         'this_month':this_month,
         'last_month':last_month,
         'department':department,
-        'total_count':total_count
+        'total_count':total_count,
+        'project_name':project_name,
+        'projects':project_list
     }
-
     return render(request,'dashboard.html',context)
 
 @login_required
@@ -108,9 +133,15 @@ def update_task(request,pk):
         form = taskform(data=request.POST,files=request.FILES,instance=task)
         audio_f = request.FILES.get('audio')
         task_selection = request.POST.get('task_selection')
+        files = request.FILES.getlist('document')
         print(task_selection)
         if form.is_valid():
             print('comes1')
+            if files:
+                for file in files:
+                    doc_instance = multi_document(task_id=pk,document=file)
+                    doc_instance.save()
+                    print('document done ')
             if audio_f:
                 task.audio = audio_f
             if task_selection:
@@ -125,15 +156,27 @@ def update_task(request,pk):
             return redirect('dashboard')
         else:
             print('Form is not valid:', form.errors)
+    files_doc = multi_document.objects.filter(task_id=pk)
+    files ={}
+    if files_doc:
+        for file in files_doc:
+            filename = str(file).split('/')[-1]
+            files[filename] = file
     form = taskform(instance=task)
     users = CustomUser.objects.filter(department=request.user.department).exclude(assigned_to=request.user.id)
     # task = Task.objects.all()
     print(users)
     url_to = 0
-    return render(request,'update_tasks.html',{'tasks':task,'form':form,'url_to':url_to,'users':users})
- 
+    return render(request,'update_tasks.html',{'tasks':task,'form':form,'url_to':url_to,'users':users,'files':files})
+  
 @login_required
 def filter_search(request):
+    users_project = Task.objects.filter(assigned_to=request.user.id).distinct()
+    project_list = {}
+    for task in users_project:
+        if task.project.project_name not in project_list:
+            task_count = len(Task.objects.filter(project=task.project,assigned_to=request.user.id))
+            project_list[task.project.project_name] = task_count
     department= request.user.department
     if request.method =="POST":
         from_date = request.POST.get('from_date')
@@ -141,16 +184,25 @@ def filter_search(request):
         project = request.POST.get('project')
         project_form = projectfilterform(request.POST)
         filter_task = Task.objects.filter(assigned_to=request.user.id,due_date__gte=from_date,due_date__lte=to_date,project=project).order_by('due_date')
-        return render(request,"filter.html",context={'department':department,'filter_task':filter_task,'project_form':project_form,'from_date':from_date,'to_date':to_date})
+        return render(request,"filter.html",context={'department':department,'filter_task':filter_task,'project_form':project_form,'from_date':from_date,'to_date':to_date,'projects':project_list})
     project_form = projectfilterform()
-    return render(request,"filter.html",context={'department':department,'project_form':project_form})
+
+    return render(request,"filter.html",context={'department':department,'project_form':project_form,'projects':project_list})
 
 @login_required
 def over_due(request):
+    users_project = Task.objects.filter(assigned_to=request.user.id).distinct()
+    project_list = {}
+    for task in users_project:
+        if task.project.project_name not in project_list:
+            task_count = len(Task.objects.filter(project=task.project,assigned_to=request.user.id))
+            project_list[task.project.project_name] = task_count
     department= request.user.department
     today = timezone.now().date()
     over_due_tasks = Task.objects.filter(assigned_to=request.user.id,due_date__lt=today).filter(Q(status="In progress") | Q(status="Pending")).order_by('due_date')
-    return render(request,'overdue_task.html',{"overdue_task":over_due_tasks,'department':department})
+    return render(request,'overdue_task.html',{"overdue_task":over_due_tasks,'department':department,'projects':project_list})
+
+
 
 @login_required
 def add_user(request):
@@ -166,6 +218,7 @@ def add_user(request):
             return render(request,'add_user.html',{'form':form})
     form =CustomUserForm()
     return render(request,'add_user.html',{'form':form,'department':department})
+
 
 @login_required
 def Team_mem(request):
@@ -184,7 +237,33 @@ def Team_mem(request):
                 pending+=1
         mem_dict[i.username]['pending']=pending
         mem_dict[i.username]["in_progress"]=in_progress
-    return render(request,'team_mem.html',{"mem_dict":mem_dict,'department':department})
+    
+    other_department_mem = Task.objects.filter(created_by = request.user.id).distinct()
+    print(other_department_mem,'dddd')
+    list_of_memebers = []
+    for spec_user in other_department_mem:
+        user = CustomUser.objects.filter(username = spec_user.assigned_to).exclude(department=request.user.department).first()
+        print(user,'s')
+        if user:
+            if user.username not in list_of_memebers:
+                list_of_memebers.append(user.username)
+    print(list_of_memebers)
+    other_mem_list = {}
+    for i in list_of_memebers:
+        username_ = CustomUser.objects.filter(username=i).first()
+        pending =0
+        in_progress=0
+        other_mem_list[username_.username]={'pending':pending,'in_progress':in_progress,'id':username_.id}
+        mem = Task.objects.filter(assigned_to=username_.id)
+        for k in mem:
+            if k.status =="In progress":
+                in_progress+=1
+            else:
+                pending+=1
+        other_mem_list[username_.username]['pending']=pending
+        other_mem_list[username_.username]["in_progress"]=in_progress
+    print(other_mem_list)
+    return render(request,'team_mem.html',{"mem_dict":mem_dict,'department':department,'other_mem_list':other_mem_list})
 
 @login_required
 def profile_update(request,pk):
@@ -242,13 +321,25 @@ def delete_task(request,pk):
     task.delete()
     return redirect('profile_update',user_id)
 
-# pradeep bits consultancy
-
 @login_required
 def new_task_creation(request):
+    users_project = Task.objects.filter(assigned_to=request.user.id).distinct()
+    project_list = {}
+    for task in users_project:
+        if task.project.project_name not in project_list:
+            task_count = len(Task.objects.filter(project=task.project,assigned_to=request.user.id))
+            project_list[task.project.project_name] = task_count
+    department= request.user.department
     members = CustomUser.objects.filter(department=request.user.department).exclude(id=request.user.id).order_by("id")
+    departments_names = CustomUser.objects.all()
+    departments = []
+    for department_name in departments_names:
+        if department_name.department not in departments:
+            departments.append(department_name.department)
+
     if request.method == 'POST':
         assign11 = request.POST.get('assigned_to')
+        print(assign11)
         assign = CustomUser.objects.get(username=assign11)
         form = Taskcreation_form(data=request.POST)
         if form.is_valid():
@@ -258,11 +349,19 @@ def new_task_creation(request):
             task_instance.save()
             messages.success(request,"Your Task has been created successfully!")
             return redirect('new_task_creation')
-        return render(request,'new_task.html',{"form":form,"members":members})
+        return render(request,'new_task.html',{"form":form,"members":members,'department':department,'projects':project_list})
     form = Taskcreation_form()
-    return render(request,'new_task.html',{"form":form,"members":members})
+    print(departments)
+    return render(request,'new_task.html',{"form":form,"members":members,'departments':departments,'department':department,'projects':project_list})
 
 def project_creation(request):
+    users_project = Task.objects.filter(assigned_to=request.user.id).distinct()
+    project_list = {}
+    for task in users_project:
+        if task.project.project_name not in project_list:
+            task_count = len(Task.objects.filter(project=task.project,assigned_to=request.user.id))
+            project_list[task.project.project_name] = task_count
+    department= request.user.department
     if request.method == "POST":
         form = project_form(data=request.POST)
         if form.is_valid():
@@ -328,30 +427,6 @@ def logout_view(request):
     logout(request)
     return redirect('login')
 
-def admin_login(request):
-    pass
-
-
-def test(request):
-    test_func.delay()
-    return HttpResponse("done")
-
-def schedule_task(request):
-    interval,_ = IntervalSchedule.objects.get_or_create(
-        every = 30,
-        period = IntervalSchedule.SECONDS,
-    )
-
-    PeriodicTask.objects.create(
-        interval = interval,
-        name = "my-schedule",
-        task = "task_pro.task.test_func",
-        # args = json.dumps(["Arg1","Args2"])
-        # one_off = True
-    )
-
-    return "Task Scheduled !"
-
 
 def send_mail_(request):
     send_mail_view.delay()
@@ -363,6 +438,15 @@ def mailattime(request):
     return HttpResponse("success")
 
 
+def getuser_department(request,name):
+    print(name)
+    if request.method == "GET":
+        try:
+            users_list = CustomUser.objects.filter(department=name)
+            users_list_ = [{'username':i.username } for i in users_list]
+            return JsonResponse({'users_list':users_list_})
+        except CustomUser.DoesNotExist:
+            return JsonResponse({'error':'Invalid request'},status=400)
 
 def get_tasks_for_user(request,user_id):
     if request.method == 'GET':
@@ -383,127 +467,3 @@ def waiting_user_data(request,id):
         except CustomUser.DoesNotExist:
             return JsonResponse({'user_data':[]})
     return JsonResponse({'error'})
-
-
-# tasks 
-'''
-@login_required
-def new_task_creation(request):
-    # Fetch all team members in the same department (excluding the current logged-in user)
-    members = CustomUser.objects.filter(department=request.user.department).exclude(id=request.user.id).order_by("id")
-    
-    # Assuming the project is passed as a form field
-    project_id = request.POST.get('project_id')  # Get project id from form
-    try:
-        project = Project.objects.get(id=project_id)  # Fetch the project by ID
-    except Project.DoesNotExist:
-        messages.error(request, "Project not found!")
-        return redirect('new_task_creation')  # Redirect to an appropriate page
-
-    if request.method == 'POST':
-        assign11 = request.POST.get('assigned_to')
-        try:
-            assign = CustomUser.objects.get(username=assign11)  # Get first user
-        except CustomUser.DoesNotExist:
-            messages.error(request, "Assigned user not found!")
-            return redirect('new_task_creation')
-        
-        form = Taskcreation_form(data=request.POST)
-        
-        if form.is_valid():
-            # Create the first task (for the first team member)
-            task_instance = form.save(commit=False)
-            task_instance.assigned_to = assign
-            task_instance.created_by = request.user
-            task_instance.project = project
-            task_instance.status = "In progress"  # First task should be In Progress
-            task_instance.save()
-
-            messages.success(request, "The first task has been created successfully for the first user!")
-            return redirect('new_task_creation')  # Redirect to task creation page or another page
-
-    form = Taskcreation_form()
-    return render(request, 'new_task.html', {"form": form, "members": members})
-
-
-    
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from django.core.mail import send_mail
-from django.conf import settings
-
-@receiver(post_save, sender=Task)
-def assign_next_task(sender, instance, created, **kwargs):
-    if instance.status == "Completed":
-        # Find the next user in the sequence
-        # Get the list of team members, excluding the one who just completed the task
-        project = instance.project
-        members = CustomUser.objects.filter(department=instance.assigned_to.department).exclude(id=instance.assigned_to.id).order_by('id')
-
-        # Find the next user in the list
-        next_user = None
-        for member in members:
-            if not Task.objects.filter(assigned_to=member, project=project).exists():  # If no task assigned yet
-                next_user = member
-                break
-        
-        if next_user:
-            # Create the next task for the next user
-            new_task = Task.objects.create(
-                title=f"Task for {next_user.username} - {instance.title}",
-                description=instance.description,
-                assigned_to=next_user,
-                created_by=instance.created_by,
-                due_date=instance.due_date,
-                project=project,
-                status="In progress",  # Start the new task as 'In Progress'
-            )
-
-            # Link the current task to the next task
-            instance.next_task = new_task
-            instance.save()
-
-            # Optionally send an email to the next user
-            subject = f"New task assigned: {new_task.title}"
-            message = f"You have been assigned a new task: {new_task.description}"
-            recipient = new_task.assigned_to.email
-
-            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [recipient])
-
-            # Log a message
-            print(f"Task '{instance.title}' completed. Task for {next_user.username} assigned.")
-
-
-            
-class Task(models.Model):
-    STATUS_CHOICES = (
-        ('Pending', 'Pending'),
-        ('In progress', 'In progress'),
-        ('Completed', 'Completed'),
-    )
-
-    title = models.CharField(max_length=200)
-    description = models.TextField()
-    assigned_to = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, related_name="assigned_to")
-    created_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, related_name="created_by")
-    due_date = models.DateField()
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True, blank=True)
-    status = models.CharField(max_length=100, choices=STATUS_CHOICES, default='Pending')
-    message = models.TextField(null=True, blank=True)
-    document = models.FileField(upload_to='documents/', null=True, blank=True)
-    audio = models.FileField(upload_to='audio/', null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    
-    # Link to the next task in the chain
-    next_task = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL)
-
-    def __str__(self):
-        return self.title
-
-        
-
-
-except assigned to 
-everthing will be remain 
-while selecting assigned to task here only i want to select the members whoever is going to paticipate in that project so i have to select the memebrs and i have to give the number to ecah member because in that order only  our backend logic will work 
-'''

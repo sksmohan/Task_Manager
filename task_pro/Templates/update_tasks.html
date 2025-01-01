@@ -7,9 +7,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <title>Document</title>
     <style>
+        
         .form_title {
             color: yellow;
         }
+
         .form_labels {
             font-weight: bold;
             margin-right: 30px;
@@ -119,10 +121,14 @@
                         </div>
                     </div>
                     <div class="form_label_divs">
-                        <span class="form_labels">{{ form.document.label }}:</span>
-                        {{ form.document }}
-                        {% if tasks.document %}
-                        <a href="{{ tasks.document.url }}" target="_blank">Existing</a>
+                        <label for="document">Documents</label>
+                        <input type="file" name="document" class="document" multiple>
+                        {% if files %}
+                            <div style="max-width: 250px;max-height:100px;overflow-x: auto;overflow-y: auto;">
+                                {% for name,url in files.items %}
+                                    <a href="{{ url }}" download>{{ name }}</a> <br>
+                                {% endfor %}
+                            </div>
                         {% endif %}
                     </div>
                     <div>
@@ -149,12 +155,11 @@
     <script src="{% static 'js/update_task.js' %}"></script>
 
 </body>
-</html>
-<!-- <script>
+<script>
     // Form submission
     const form = document.querySelector('form');
     form.addEventListener('submit', async (event) => {
-        event.preventDefault(); // Prevent default form submission
+        event.preventDefault();
 
         const formData = new FormData(form); // Create FormData from the form
 
@@ -178,4 +183,5 @@
             console.error('Error submitting form');
         }
     });
-</script> -->
+</script>
+</html>

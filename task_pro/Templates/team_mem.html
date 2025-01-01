@@ -39,5 +39,27 @@
             </tr>
         {% endfor %}
     </table>
+    <h3>Others Departments</h3>
+    <table cellspacing=20>
+        <tr style="border:2px solid white;">
+            <th>S.No</th>
+            <th>Name</th>
+            <th>Department</th>
+            <th>Pending</th>
+            <th>In Progress</th>
+            <th>Tasks</th>
+        </tr>
+        {% for i ,k in other_mem_list.items %}
+            <tr class="table_row">
+                <td>{{ forloop.counter }}</td>
+                <td class="table_data">{{ i }}</td>
+                <td class="table_data">{{ request.user.department }}</td>
+                <td class="table_data">{{ k.pending }}</td>
+                <td class="table_data">{{ k.in_progress }}</td>
+                <td class="table_data"><a href="{% url 'profile_update' k.id %}">View{{ k.id }}</a></td>
+                <td></td>
+            </tr>
+        {% endfor %}
+    </table>
 </div>
 {% endblock %}

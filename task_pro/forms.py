@@ -81,7 +81,7 @@ class projectfilterform(forms.ModelForm):
 class taskform(forms.ModelForm):
     class Meta:
         model = Task
-        fields = ['title', 'description','assigned_to', 'due_date', 'status', 'created_by','message','project','document']
+        fields = ['title', 'description','assigned_to', 'due_date', 'status', 'created_by','message','project']
 
         widgets ={
             'title':forms.TextInput(attrs={
@@ -109,9 +109,6 @@ class taskform(forms.ModelForm):
             }),
             'message':forms.Textarea(attrs={
                 'class':'form_message'
-            }),
-            "document":forms.FileInput(attrs={
-                'class':'form_document'
             })
         }
 class Taskcreation_form(forms.ModelForm):
@@ -150,7 +147,7 @@ class Taskcreation_form(forms.ModelForm):
 class project_form(forms.ModelForm):
     class Meta:
         model = Project
-        fields = ['project_name','description','Is_daily']
+        fields = ['project_name','description','Is_daily','Is_weekly','Is_monthly']
 
         widgets={
             'project_name':forms.TextInput(attrs={

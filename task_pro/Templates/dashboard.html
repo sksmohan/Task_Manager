@@ -19,7 +19,28 @@
     box-shadow: 1px 1px 10px 1px red;
     padding: 2px;
     }
-
+    .side-div3{
+    padding:10px;
+    display: flex;
+    flex-direction: column;
+    margin-top: 25px;
+    border:1px solid black;
+    border-radius: 7px;
+    box-shadow: 2px 0px 25px 1px black;
+    cursor: pointer;
+    max-height: 100px;
+    overflow-y: auto;
+    overflow-x: auto;
+    font-size: 14px;
+    }
+    .side-div3 a{
+        text-decoration: none;
+        background-color: white;
+        margin-bottom: 2px;
+        padding:3px;
+        border-radius: 5px;
+    }
+     
 </style>
 <body>
     <header></header>
@@ -37,6 +58,13 @@
                 <a href="{% url 'specific_task' 'In progress' %}" class="side-bar-menu">In progress</a>
                 <a href="{% url 'specific_task' 'Completed' %}" class="side-bar-menu">Completed</a>
             </div>
+            <h3 style="position:absolute;left: 90px;">Projects</h3>
+            <div class="side-div3" style="margin-top: 50px;">
+                {% for project,count in projects.items %}
+                    <a href="{% url 'specific_task' project %}">{{ forloop.counter }}. {{ project }} ({{ count }})</a>
+                {% endfor %}
+            </div>
+            
         </section>
         <section class="second-sec">
             <nav style="display:flex;">
@@ -44,14 +72,15 @@
                 <a href="">Report</a>
                 <a href="{% url 'filter_search' %}">Filter</a>
                 <a href="{% url 'over_due' %}">Over_Due</a>
-                {% if request.user.is_superuser %} 
+                {% if request.user.is_staff %}
                 <a href="{% url 'add_user' %}">add_user</a>
                 <a href="{% url 'Team_mem' %}">Team</a>
                 <a href="{% url 'new_task_creation' %}">New_Task</a>
-                <a href="{% url 'project_creation' %}">Project</a>
+                <a href="{% url 'project_creation' %}">Project_Creation</a>
                 {% endif %}
             </nav>
             {% block content %}
+            {% if project_name %} <h3>{{ project_name }}</h3> {% endif %}
             <div class="dashboard">
                 {% if today_task %}
                 <p class="table_head">Today_task</p>
@@ -59,21 +88,174 @@
                     <table class="main-table">
                         <th>S.No</th>
                         <th>Task</th>
+                        <th>Created by</th>
                         <th>Due Date</th>
                         <th>Status</th>
                         <th>Waiting</th>
                         <th>Stuck Time</th>
-                        <th>Details</th>
                         {% for i in today_task %}
                             <tr>
                                 <td>{{ forloop.counter  }}</td>
-                                <td class="table_firstdata">{{ i.title }}</td>
+                                <td class="table_firstdata"><a href="{% url 'update_task' i.id %}"> {{ i.title }} </a></td>
+                                <td>{{ i.created_by }} <p style="font-size: 11px;text-align: center;">{{ i.task_created_at }}</p> </td>
                                 <td>{{ i.due_date }}</td>
                                 {% if i.incomplete %}
                                     <td ><span class="status_warning" style="width: 100px;">{{ i.status }}</span></td>
                                     <td><span class="waiting_user">{{ i.waiting_for_username }}</span></td>
                                 {% else %}
-                                    <td class="status">{{ i.status }}</td>  
+                                <td class="status">
+                                    <span style="{% if i.status == 'Completed' %}color:green;{% endif %}">{{ i.status }}</span>
+                                    {% if i.status == "Completed" %}
+                                        <br>
+                                        <span style="font-size: 11px; {% if i.is_late %}color: red;{% else %}color: green;{% endif %}">
+                                            {{ i.task_completed_at }}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td><span></span></td>
+                                {% endif %}
+                                <td>
+                                    <div style="display: flex;flex-direction: column;">
+                                        {% if i.struck_time_start_at %} 
+                                            <span style="font-size:12px;"> <img src="{% static 'images/startbutt.jpg' %}" alt="" style="width: 10px;height: 10px;"> {{ i.struck_time_start_at }}</span>
+                                        {% endif %}
+                                        {% if i.stuck_time_end_at %}
+                                            <span style="font-size:12px;"> <img src="{% static 'images/stopbutt.jpg' %}" alt="" style="width: 10px;height: 10px;"> {{ i.stuck_time_end_at }}</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+                {% endif %}
+                {% if yesterday %}
+                <p class="table_head">Yesterday_task</p>
+                <div class="table_div1">
+                    <table class="main-table">
+                        <th>S.No</th>
+                        <th>Task</th>
+                        <th>Created by</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                        <th>Waiting</th>
+                        <th>Stuck Time</th>
+                        {% for i in yesterday %}
+                            <tr>
+                                <td>{{ forloop.counter  }}</td>
+                                <td class="table_firstdata"><a href="{% url 'update_task' i.id %}"> {{ i.title }} </a></td>
+                                <td>{{ i.created_by }} <p style="font-size: 11px;text-align: center;">{{ i.task_created_at }}</p> </td>
+                                <td>{{ i.due_date }}</td>
+                                {% if i.incomplete %}
+                                    <td ><span class="status_warning" style="width: 100px;">{{ i.status }}</span></td>
+                                    <td><span class="waiting_user">{{ i.waiting_for_username }}</span></td>
+                                {% else %}
+                                <td class="status">
+                                    <span style="{% if i.status == 'Completed' %}color:green;{% endif %}">{{ i.status }}</span>
+                                    {% if i.status == "Completed" %}
+                                        <br>
+                                        <span 
+                                            style="font-size: 11px; {% if i.is_late %}color: red;{% else %}color: green;{% endif %}">
+                                            {{ i.task_completed_at }}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td><span></span></td>
+                                {% endif %}
+                                <td>
+                                    <div style="display: flex;flex-direction: column;">
+                                        {% if i.struck_time_start_at %}
+                                            <span style="font-size:12px;"> <img src="{% static 'images/startbutt.jpg' %}" alt="" style="width: 10px;height: 10px;"> {{ i.struck_time_start_at }}</span>
+                                        {% endif %}
+                                        {% if i.stuck_time_end_at %}
+                                            <span style="font-size:12px;"> <img src="{% static 'images/stopbutt.jpg' %}" alt="" style="width: 10px;height: 10px;"> {{ i.stuck_time_end_at }}</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+                {% endif %}
+                {% if this_week %}
+                <p class="table_head" >This_week</p>
+                <div class="table_div1">
+                    <table class="main-table">
+                        <th>S.No</th>
+                        <th>Task</th>
+                        <th>Created by</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                        <th>Waiting</th>
+                        <th>Stuck Time</th>
+                        {% for i in this_week %}
+                            <tr>
+                                <td>{{ forloop.counter  }}</td>
+                                <td class="table_firstdata"><a href="{% url 'update_task' i.id %}"> {{ i.title }} </a></td>
+                                <td>{{ i.created_by }} <p style="font-size: 11px;text-align: center;">{{ i.task_created_at }}</p> </td>
+                                <td>{{ i.due_date }}</td>
+                                {% if i.incomplete %}
+                                    <td ><span class="status_warning" style="width: 100px;">{{ i.status }}</span></td>
+                                    <td><span class="waiting_user">{{ i.waiting_for_username }}</span></td>
+                                {% else %}
+                                <td class="status">
+                                    <span style="{% if i.status == 'Completed' %}color:green;{% endif %}">{{ i.status }}</span>
+                                    {% if i.status == "Completed" %}
+                                        <br>
+                                        <span  
+                                            style="font-size: 11px; {% if i.is_late %}color: red;{% else %}color: green;{% endif %}">
+                                            {{ i.task_completed_at }}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td><span></span></td>
+                                {% endif %}
+                                <td>
+                                    <div style="display: flex;flex-direction: column;">
+                                        {% if i.struck_time_start_at %} 
+                                            <span style="font-size:12px;"> <img src="{% static 'images/startbutt.jpg' %}" alt="" style="width: 10px;height: 10px;"> {{ i.struck_time_start_at }}</span>
+                                        {% endif %}
+                                        {% if i.stuck_time_end_at %}
+                                            <span style="font-size:12px;"> <img src="{% static 'images/stopbutt.jpg' %}" alt="" style="width: 10px;height: 10px;"> {{ i.stuck_time_end_at }}</span>
+                                        {% endif %}
+                                    </div>    
+                                </td>
+                            </tr>
+                        {% endfor %}        
+                    </table>    
+                </div>      
+                {% endif %}
+                {% if last_week %}  
+                <p class="table_head" >Last_week</p>
+                    <div class="table_div1">
+                    <table class="main-table">
+                        <th>S.No</th>
+                        <th>Task</th>
+                        <th>Created by</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                        <th>Waiting</th>
+                        <th>Stuck Time</th>
+                        {% for i in last_week %}
+                            <tr>
+                                <td>{{ forloop.counter  }}</td>
+                                <td class="table_firstdata"><a href="{% url 'update_task' i.id %}"> {{ i.title }} </a></td>
+                                <td>{{ i.created_by }} <p style="font-size: 11px;text-align: center;">{{ i.task_created_at }}</p> </td>
+                                <td>{{ i.due_date }}</td>
+                                {% if i.incomplete %}
+                                    <td ><span class="status_warning" style="width: 100px;">{{ i.status }}</span></td>
+                                    <td><span class="waiting_user">{{ i.waiting_for_username }}</span></td>
+                                {% else %}
+                                    <td class="status">
+                                        <span style="{% if i.status == 'Completed' %}color:green;{% endif %}">{{ i.status }}</span>
+                                        {% if i.status == "Completed" %}
+                                            <br>
+                                            <span 
+                                                style="font-size: 11px; {% if i.is_late %}color: red;{% else %}color: green;{% endif %}">
+                                                {{ i.task_completed_at }}
+                                            </span>
+                                        {% endif %}
+                                    </td>
                                     <td><span></span></td>
                                 {% endif %}
                                 <td>
@@ -86,92 +268,6 @@
                                         {% endif %}
                                     </div>    
                                 </td>
-                                <td><a href="{% url 'update_task' i.id %}" >View</a></td>
-                            </tr>
-                        {% endfor %}
-                    </table>
-                </div>
-                {% endif %}
-                {% if yesterday %}
-                <p class="table_head">Yesterday_task</p>
-                <div class="table_div1">
-                    <table class="main-table">
-                        <th>S.No</th>
-                        <th>Task</th>
-                        <th>Due Date</th>
-                        <th>Status</th>
-                        <th>Created by</th>
-                        <th>Details</th>
-                        {% for i in yesterday %}
-                            <tr>
-                                <td>{{ forloop.counter  }}</td>
-                                <td class="table_firstdata">{{ i.title }}</td>
-                                <td>{{ i.due_date }}</td>
-                                <td class="status">{{ i.status }}</td>
-                                <td>{{ i.created_by }}</td>
-                                <td><a href="{% url 'update_task' i.id %}" >View</a></td>
-                            </tr>
-                        {% endfor %}
-                    </table>
-                </div>
-                {% endif %}
-                {% if this_week %}
-                <p class="table_head" >This_week</p>
-                <div class="table_div1">
-                    <table class="main-table">
-                        <th>S.No</th>
-                        <th>Task</th>   
-                        <th>Due Date</th>
-                        <th>Status</th>
-                        <th>waiting_for </th>
-                        <th>Struck Time</th>
-                        <th>Details</th>
-                        {% for i in this_week %}    
-                            <tr>
-                                <td>{{ forloop.counter  }}</td>
-                                <td class="table_firstdata">{{ i.title }}</td>
-                                <td>{{ i.due_date }}</td>
-                                {% if i.incomplete %}
-                                    <td ><span class="status_warning" style="width: 100px;">{{ i.status }}</span></td>
-                                    <td><span id="waiting_user">{{ i.waiting_for }}</span></td>
-                                {% else %}
-                                    <td class="status">{{ i.status }}</td>  
-                                    <td><span></span></td>
-                                {% endif %}
-                                <td>
-                                    <div style="display: flex;flex-direction: column;">
-                                        {% if i.struck_time_start_at %} 
-                                            <span>{{ i.struck_time_start_at }}</span>
-                                        {% endif %}
-                                        {% if i.stuck_time_end_at %}
-                                            <span>{{ i.stuck_time_end_at }}</span>
-                                        {% endif %}
-                                    </div>    
-                                </td>
-                                <td><a href="{% url 'update_task' i.id %}" >View</a></td>
-                            </tr>
-                        {% endfor %}        
-                    </table>    
-                </div>      
-                {% endif %}
-                {% if last_week %}  
-                <p class="table_head" >Last_week</p>
-                    <div class="table_div1">
-                    <table class="main-table">
-                        <th>S.No</th>
-                        <th>Task</th>
-                        <th>Due Date</th>
-                        <th>Status</th>
-                        <th>Created by</th>
-                        <th>Details</th>
-                        {% for i in last_week %}
-                            <tr>
-                                <td>{{ forloop.counter  }}</td>
-                                <td class="table_firstdata">{{ i.title }}</td>
-                                <td>{{ i.due_date }}</td>
-                                <td class="status">{{ i.status }}</td>
-                                <td>{{ i.created_by }}</td>
-                                <td><a href="{% url 'update_task' i.id %}" >View</a></td>
                             </tr>
                         {% endfor %}
                     </table>
@@ -183,18 +279,43 @@
                     <table class="main-table">
                         <th>S.No</th>
                         <th>Task</th>
+                        <th>Created by</th>
                         <th>Due Date</th>
                         <th>Status</th>
-                        <th>Created by</th>
-                        <th>Details</th>
+                        <th>Waiting</th>
+                        <th>Stuck Time</th>
                         {% for i in this_month %}
                             <tr>
                                 <td>{{ forloop.counter  }}</td>
-                                <td class="table_firstdata">{{ i.title }}</td>
+                                <td class="table_firstdata"><a href="{% url 'update_task' i.id %}"> {{ i.title }} </a></td>
+                                <td>{{ i.created_by }} <p style="font-size: 11px;text-align: center;">{{ i.task_created_at }}</p> </td>
                                 <td>{{ i.due_date }}</td>
-                                <td class="status">{{ i.status }}</td>
-                                <td>{{ i.created_by }}</td>
-                                <td><a href="{% url 'update_task' i.id %}" >View</a></td>
+                                {% if i.incomplete %}
+                                    <td ><span class="status_warning" style="width: 100px;">{{ i.status }}</span></td>
+                                    <td><span class="waiting_user">{{ i.waiting_for_username }}</span></td>
+                                {% else %}
+                                <td class="status">
+                                    <span style="{% if i.status == 'Completed' %}color:green;{% endif %}">{{ i.status }}</span>
+                                    {% if i.status == "Completed" %}
+                                        <br>
+                                        <span 
+                                            style="font-size: 11px; {% if i.is_late %}color: red;{% else %}color: green;{% endif %}">
+                                            {{ i.task_completed_at }}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td><span></span></td>
+                                {% endif %}
+                                <td>
+                                    <div style="display: flex;flex-direction: column;">
+                                        {% if i.struck_time_start_at %} 
+                                            <span style="font-size:12px;"> <img src="{% static 'images/startbutt.jpg' %}" alt="" style="width: 10px;height: 10px;"> {{ i.struck_time_start_at }}</span>
+                                        {% endif %}
+                                        {% if i.stuck_time_end_at %}
+                                            <span style="font-size:12px;"> <img src="{% static 'images/stopbutt.jpg' %}" alt="" style="width: 10px;height: 10px;"> {{ i.stuck_time_end_at }}</span>
+                                        {% endif %}
+                                    </div>    
+                                </td>
                             </tr>
                         {% endfor %}
                     </table>
@@ -206,18 +327,43 @@
                     <table class="main-table">
                         <th>S.No</th>
                         <th>Task</th>
+                        <th>Created by</th>
                         <th>Due Date</th>
                         <th>Status</th>
-                        <th>Created by</th>
-                        <th>Details</th>
+                        <th>Waiting</th>
+                        <th>Stuck Time</th>
                         {% for i in last_month %}
                             <tr>
                                 <td>{{ forloop.counter  }}</td>
-                                <td class="table_firstdata">{{ i.title }}</td>
+                                <td class="table_firstdata"><a href="{% url 'update_task' i.id %}"> {{ i.title }} </a></td>
+                                <td>{{ i.created_by }} <p style="font-size: 11px;">{{ i.task_created_at }}</p> </td>
                                 <td>{{ i.due_date }}</td>
-                                <td class="status">{{ i.status }}</td>
-                                <td>{{ i.created_by }}</td>
-                                <td><a href="{% url 'update_task' i.id %}" >View</a></td>
+                                {% if i.incomplete %}
+                                    <td ><span class="status_warning" style="width: 100px;text-align: center;">{{ i.status }}</span></td>
+                                    <td><span class="waiting_user">{{ i.waiting_for_username }}</span></td>
+                                {% else %}
+                                <td class="status">
+                                    <span style="{% if i.status == 'Completed' %}color:green;{% endif %}">{{ i.status }}</span>
+                                    {% if i.status == "Completed" %}
+                                        <br>
+                                        <span 
+                                            style="font-size: 11px; {% if i.is_late %}color: red;{% else %}color: green;{% endif %}">
+                                            {{ i.task_completed_at }}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td><span></span></td>
+                                {% endif %}
+                                <td>
+                                    <div style="display: flex;flex-direction: column;">
+                                        {% if i.struck_time_start_at %} 
+                                            <span style="font-size:12px;"> <img src="{% static 'images/startbutt.jpg' %}" alt="" style="width: 10px;height: 10px;"> {{ i.struck_time_start_at }}</span>
+                                        {% endif %}
+                                        {% if i.stuck_time_end_at %}
+                                            <span style="font-size:12px;"> <img src="{% static 'images/stopbutt.jpg' %}" alt="" style="width: 10px;height: 10px;"> {{ i.stuck_time_end_at }}</span>
+                                        {% endif %}
+                                    </div>    
+                                </td>
                             </tr>
                         {% endfor %}
                     </table>

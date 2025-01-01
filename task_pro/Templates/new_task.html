@@ -40,6 +40,49 @@
             console.log(due_date)
             due_date.setAttribute('required',true);
         </script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+            const dapartments_select = document.querySelector('#select_department');
+            const users_list = document.querySelector('#_users_list');
+
+            dapartments_select.addEventListener('change', function () {
+                const department_name = this.value;
+
+                users_list.innerHTML = '<option value="">Select User</option>';
+                if (!department_name) {
+                    users_list.setAttribute('disabled', true);
+                    return;
+                }
+
+                users_list.removeAttribute('disabled');
+                fetch('/getuser_department/' + department_name + '/', {
+                    method: "GET",
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.users_list.length > 0) {
+                        data.users_list.forEach(user => {
+                            const option = document.createElement('option');
+                            option.value = user.username;
+                            option.textContent = user.username;
+                            users_list.appendChild(option);
+                        });
+                    } else {
+                        const option = document.createElement('option');
+                        option.value = "";
+                        option.textContent = "No User Available";
+                        users_list.appendChild(option);
+                    }
+                })
+                .catch(error => {
+                    console.log("Error fetching ", error);
+                });
+            });
+        });
+        </script>
     {% endblock %}
     {% block content %}
     <div class="new_task">
@@ -65,11 +108,17 @@
                     <td>: {{ form.due_date }}</td>
                     <td>assigned_to</td>
                     <td>
-                        : <select name="assigned_to" id="" class="common1">
-                            {% for i in members %}
-                                <option value="{{ i }}">{{ i }}</option>
+                        <select name="select_department" id="select_department" class="common1">
+                            <option value="">Select_department</option>
+                            {% for department in departments %}
+                                <option value="{{ department }}">{{ department }}</option>
                             {% endfor %}
                         </select>
+                        <div id="users_list_div">
+                            <select name="assigned_to" id="_users_list" class="common1">
+                                <option value="Select_User"></option>
+                            </select>
+                        </div>
                     </td>
                 </tr> 
                 <tr>

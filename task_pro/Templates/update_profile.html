@@ -66,12 +66,14 @@
                         <span class="form_labels">{{ form.email.label }}:</span>
                         {{ form.email }} <br>
                     </div>
+                    {% if request.user.is_superuser %}
                     <div  class="form_label_divs">
                         <span class="form_labels">{{ form.is_superuser.label }} :</span>
                         {{ form.is_superuser }}
                     </div>
+                    {% endif %}
                     <div  class="form_label_divs">
-                        <span class="form_labels">{{ form.is_staff.label }}:</span>
+                        <span class="form_labels">Is_Head:</span>
                         {{ form.is_staff }} <br>
                     </div>
                 </div>
@@ -83,10 +85,6 @@
                     <div class="form_label_divs">
                         <span class="form_labels">{{ form.password.label }}:</span>
                         {{ form.password }} <br>
-                    </div>
-                    <div  class="form_label_divs">
-                        <span class="form_labels">{{ form.head.label }} :</span>
-                        {{ form.head }}
                     </div>
                     <div>
                         <button type="submit" class="submit_button">Updte</button>
