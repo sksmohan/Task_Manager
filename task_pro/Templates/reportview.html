@@ -1,0 +1,363 @@
+{% extends 'dashboard.html' %}
+{% block head %}
+{% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% block title %}<title>Task | New_task </title>{% endblock %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/ag-charts-community/dist/umd/ag-charts-community.js"></script>
+    <style>
+    
+    .progress_bar::-webkit-progress-value {
+        background-color:green;
+    }
+
+    .progress_bar_mem ::-webkit-progress-value {
+    background-color:rgb(173, 20, 160); 
+    border-radius: 10px;
+    }
+
+    .report_profile_sec{
+        display: flex;
+        flex-direction: row;
+        margin-top: 10px;
+        gap: 10px;
+    }
+
+    .report_profile{
+        width:120px;
+        height: 120px;
+        border:2px solid white;
+        border-radius: 50%;
+    }
+
+    .progress_bar{
+        width: 110px;
+        height: 18px;
+        border-radius: 1px;
+        
+    }
+
+    #analytic_sec{
+        display: flex;
+        flex-direction: row;
+        margin-top:30px;
+        margin-left:10px;
+        gap:20px;
+    }
+
+    .analytic_sec_vouchers{
+        box-shadow: 3px 3px 10px 3px black;
+        background-color: white;
+        border-radius: 5px;
+        width: 100px;
+        text-align: center;
+    }
+
+    .analytic_sec_percent{
+        text-align: center;
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    </style>
+    <script>
+         document.addEventListener('DOMContentLoaded', function() {
+            
+        
+
+            const profile_picture_ = document.getElementById('profile_picture')
+            console.log(profile_picture_,"fff")
+            const profile_pic_selection = document.getElementById('profile_pic_selection')
+            console.log(profile_pic_selection,"ddd")
+
+            profile_picture.addEventListener('click',()=>{
+                const profile_pic_selection = document.getElementById('profile_pic_selection')
+                profile_pic_selection.click();
+            });
+            profile_pic_selection.addEventListener('change',()=>{
+                const file = profile_pic_selection.files[0];
+                console.log(file)
+                if(file){
+                    const formdata =  new FormData()
+                    formdata.append('profile_picture',file)
+
+                    fetch('/profile_update_view/{{ request.user.id }}',{
+                        method : 'POST',
+                        body : formdata,
+                        headers :{
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        }
+                    })
+                    .then(response =>response.json())
+                    .then(data =>{
+                        if (data){
+                            location.reload();
+                            console.log("profile picture uploaded successfully")
+                        }else{
+                            console.error("something went wrong",data.error)
+                        }
+                    })
+                    .catch(error=>{
+                        console.log("Error",error)
+                    })
+                }
+            })
+
+            const fromdate = document.getElementById('from_date_filter');
+            const todate = document.getElementById('to_date_filter');
+            const submit_button_of_filter = document.getElementById('submit_for_filter')
+            fromdate.addEventListener('change',function(){
+                if (fromdate.value && todate){
+                    submit_button_of_filter.click()
+                }
+            })
+            todate.addEventListener('change',function(){
+                if (fromdate.value && todate){
+                    submit_button_of_filter.click()
+                }
+            })
+         });
+    </script>
+{% endblock %}
+{% block content %}
+<div>
+    <div  class="report_profile_sec">
+        {% csrf_token %}
+        <div>
+            <input type="file" style="display: none;" id="profile_pic_selection" > 
+            <img src="{% if request.user.profile_picture %} media/{{ request.user.profile_picture }} {% else %} {% static 'images/default_profile.png' %}{% endif %}" alt="profile" class="report_profile" id="profile_picture">
+        </div>
+        <div id="progress_bar_div">
+            <p style="color: white;">{{ request.user.username|upper }}</p>
+            <div style="display: flex;flex-direction: row;gap: 15px;">
+                <div style="display: flex;flex-direction:column;gap: 11px;border-right: 2px solid black;padding-right: 5px;">
+                    <div style="color: white;">Task Completion Status Overview</div>
+                    <div>
+                        <progress class="progress_bar" value="{{ average_lead }}" max="100" style="color:white;" ></progress>
+                        <span style="color:white;">{{ average_lead }}%</span>
+                    </div>
+                    
+                </div>
+                <div style="display: flex;flex-direction:column;gap: 11px;;border-right: 2px solid black;padding-right: 5px;">
+                    <div style="color: white;">Task Completion by Due Date</div>
+                    <div>
+                        <progress class="progress_bar" value="{{ average_lead_by_duedate }}" max="100" style="color:white;" name="progress"></progress>
+                        <span style="color:white;">{{ average_lead_by_duedate }}%</span>
+                    </div>
+                </div>
+                <div style="display: flex;flex-direction:column;gap: 11px;">
+                    <div style="color: white;">Delayed Tasks</div>
+                    <div>
+                        <progress class="progress_bar" value="{{ average_lead_after_duedate }}" max="100" style="color:white;" ></progress>
+                        <span style="color:white;">{{ average_lead_after_duedate }}%</span>
+                    </div>
+                    
+                </div>
+            </div>
+            <p style="color:{{ color_of_bar }};font-size:20px;">{{ command_for_task_ }}</p>
+        </div>
+        <div>
+            <form action="{% url 'filter_of_charts' %}" method="POST">  
+                {% csrf_token %}
+                <center>
+                <table cellspacing=15>
+                    <tr>
+                        <td>
+                            <label for="from_date">From </label>
+                        </td>
+                        <td>
+                            <input type="date" id="from_date_filter" name="from_date" value="{{ from_date }}" style="width: 100%;height:8px;padding:5px;font-size: 13px;border-radius: 10px;" required>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label for="to_date">TO</label>
+                        </td>
+                        <td>
+                            <input type="date" name="to_date" id="to_date_filter" value="{{to_date}}" required style="width: 100%;height:8px;padding:5px;font-size: 13px;border-radius: 10px;">
+                        </td>
+                    </tr>
+                </table>
+                </center>
+                <button style="display:none;" id="submit_for_filter">submit</button>
+            </form>
+        </div>
+    </div>
+    <div id="analytic_sec">
+        <div  class="analytic_sec_vouchers" >
+            <span style="font-size: 15px;">Today</span> <br>
+            <span class="analytic_sec_percent">{{ average_today }}%</span>
+        </div>
+        <div class="analytic_sec_vouchers" >
+            <span style="font-size: 15px;">Yesterday</span> <br>
+            <span class="analytic_sec_percent">{{ average_yesterday }}%</span>
+        </div>
+        <div class="analytic_sec_vouchers" >
+            <span style="font-size: 15px;">This week</span> <br>
+            <span class="analytic_sec_percent">{{ average_thisweek }}%</span>
+        </div>
+        <div class="analytic_sec_vouchers" >
+            <span style="font-size: 15px;">Last Week</span> <br>
+            <span class="analytic_sec_percent">{{ average_lastweek }}%</span>
+        </div>
+        <div class="analytic_sec_vouchers" >
+            <span style="font-size: 15px;">This Month</span> <br>
+            <span class="analytic_sec_percent">{{ average_thismonth }}%</span>
+        </div>
+        <div class="analytic_sec_vouchers" >
+            <span style="font-size: 15px;">Last Month</span> <br>
+            <span class="analytic_sec_percent">{{ average_lastmonth }}%</span>
+        </div>
+        <div class="analytic_sec_vouchers" >
+            <span style="font-size: 15px;">Current Year</span> <br>
+            <span class="analytic_sec_percent">{{ average_thisyear }}%</span>
+        </div>
+        <div class="analytic_sec_vouchers" >
+            <span style="font-size: 15px;">Last Year</span> <br>
+            <span class="analytic_sec_percent">{{ average_lastyear }}%</span>
+        </div>
+    </div>
+    <center>
+        <div style="width: 93%;background-color: white;padding: 30px;border-radius: 5px;margin-top: 35px;">
+            <canvas id="myChart_bar" ></canvas>
+        </div>
+    </center>
+    {% if request.user.is_staff %}
+        <h2>Team</h2>
+        <div style="display: flex;background-color: white;gap: 5%;padding:5px;border-radius: 5px;">
+            <div style="background-color: white;max-height: 400px;overflow-x: auto;overflow-y: auto;">
+                {% for member in list_of_department_members %}
+                    <div style="display: flex;padding: 5px;">
+                        <div>
+                            <img src="{% if member.2 %} /media/{{ member.2 }} {% else %}{% static 'images/default_profile.png' %}{% endif %} " alt="profile" style="width:70px;height:70px;border-radius: 50px;" >
+                        </div>
+                        <div style="padding: 5px;">
+                            <span style="color:black;padding: 20px;padding-bottom:5px ;">{{ member.0 | upper}}</span> <br>
+                            <table>
+                                <tr>
+                                    <td>
+                                        <span style="color:black;padding: 20px;font-size: 15px;">Overall</span>
+                                    </td>
+                                    <td>
+                                        <progress class="progress_bar_mem" value="{{ member.1 }}" max="100" style="background-color: blue;color:white;width: 100px;height: 10px;" > </progress>
+                                    </td>
+                                    <td>
+                                        {{ member.1 }}%
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <span style="color:black;padding: 20px;font-size: 15px;">By duedate</span>
+                                    </td>
+                                    <td>
+                                        <progress class="progress_bar_mem" value="{{ member.3 }}" max="100" style="background-color: blue;color:white;width: 100px;height: 10px;" > </progress>
+                                    </td>
+                                    <td class="font_for_task_health" style="">
+                                        {{ member.3 }}%
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <span style="color:black;font-size: 15px;">Delayed completion</span>
+                                    </td>
+                                    <td>
+                                        <progress class="progress_bar_mem" value="{{ member.4 }}" max="100" style="background-color: blue;color:white;width: 100px;height: 10px;" >32% </progress>
+                                    </td>
+                                    <td>
+                                        {{ member.4 }}%
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    <hr>
+                {% endfor %}
+            </div>
+            <div style="width: 50%;height: 380px;padding: 10px;">
+                <canvas id="myChart_pie" ></canvas>
+            </div>
+        </div>
+    {% endif %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      <script>
+        const bar_chart = document.getElementById('myChart_bar');
+        const pie_chart = document.getElementById('myChart_pie');
+    
+        new Chart(bar_chart, {
+          type: 'bar',
+          data: {
+            labels: [{% for j in labels_of_chart %} '{{ j }}' {% if not forloop.last %}, {% endif %} {% endfor %}],
+            datasets: [{
+              label: 'Project health',
+              data: [{% for j in values_of_chart %} {{ j }} {% if not forloop.last %}, {% endif %} {% endfor %}],
+              borderWidth: 1,
+              barPercentage: 0.5,
+              barThickness: 40,
+              maxBarThickness: 40,
+            }]
+          },
+          options: {
+            plugins: {
+                datalabels: {
+                anchor: 'end',
+                align: 'top',
+                font: {
+                    weight: 'bold'
+                }
+                }
+            },
+            scales: {
+                y: {
+                beginAtZero: true
+                }
+            }
+            }
+        });
+        new Chart(pie_chart, {
+          type: 'pie',
+          data: {
+            labels: [{% for j in list_of_department_members %} '{{ j.0 }}' {% if not forloop.last %}, {% endif %} {% endfor %}],
+            datasets: [{
+              label: 'Task health',
+              data: [{% for j in list_of_department_members %} '{{ j.1 }}' {% if not forloop.last %}, {% endif %} {% endfor %}],
+              borderWidth: 1,
+              barPercentage: 0.5,
+              barThickness: 40,
+              maxBarThickness: 40,
+            }]
+          },
+          options: {
+            plugins: {
+                datalabels: {
+                anchor: 'end',
+                align: 'top',
+                font: {
+                    weight: 'bold'
+                }
+                }
+            },
+            scales: {
+                y: {
+                beginAtZero: true
+                }
+            }
+            }
+        });
+        const { AgCharts } = agCharts;
+        const options = {
+        type: "radial-gauge",
+        container: document.getElementById("myChart_aug"),
+        value: 80,
+        scale: {
+            min: 0,
+            max: 100,
+        },
+        };
+
+        AgCharts.createGauge(options);
+      </script>
+
+</div>
+{% endblock %}

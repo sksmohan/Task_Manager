@@ -121,10 +121,11 @@ class Taskcreation_form(forms.ModelForm):
                 'class':"task_form_title common1",
             }),
             'description':forms.Textarea(attrs={
-                'class':'task_form_description common1',
+                'class':'task_form_description common1'
             }),
             'assigned_to':forms.TextInput(attrs={
                 'class':'task_form_assigned_to common1',
+                'required':True
             }),
             'due_date':forms.DateInput(attrs={
                 'class':'task_form_due_date common1',
@@ -140,7 +141,8 @@ class Taskcreation_form(forms.ModelForm):
                 'class':'task_form_message common1'
             }),
             "project":forms.Select(attrs={
-                'class':'task_form_project common1'
+                'class':'task_form_project common1',
+                'required':True
             })
         }
 

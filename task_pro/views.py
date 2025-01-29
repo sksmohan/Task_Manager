@@ -1,6 +1,8 @@
 from .task import send_mail_view
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from datetime import date, datetime, time
+
 from datetime import datetime
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render , redirect
@@ -18,6 +20,181 @@ from django.core.mail import send_mail
 from django.conf import settings
 # Create your views here.
 
+
+def filter_of_charts(request):
+    if request.method == "POST":
+        from_date_ = request.POST.get('from_date')
+        to_date_ = request.POST.get('to_date')
+
+        from_date = datetime.strptime(from_date_, '%Y-%m-%d').date()
+        to_date = datetime.strptime(to_date_, '%Y-%m-%d').date()
+        from_date_2_with_time_and_seconds = datetime.combine(from_date, time(1, 0, 30))
+        to_date_2_with_11_55_pm = datetime.combine(to_date, time(23, 55))
+
+        total_task_retrival = Task.objects.filter(assigned_to=request.user.id,task_created_at__gte=from_date_2_with_time_and_seconds,task_created_at__lte=to_date_2_with_11_55_pm).count()
+        completed_tasks = Task.objects.filter(assigned_to=request.user.id,incomplete=False,task_created_at__gte=from_date_2_with_time_and_seconds,task_created_at__lte=to_date_2_with_11_55_pm )
+        count_of_completed = 0
+        count_completedtask_by_duedate = 0
+        count_completedtask_after_duedate = 0
+        for task in completed_tasks:
+            if task.task_completed_at is not None:
+                duedate = task.due_date
+                str_completedate = str(task.task_completed_at).split(' ')[0]
+                completedate = datetime.strptime(str_completedate,"%Y-%m-%d").date()
+                if duedate < completedate:
+                    count_of_completed+=1
+                    count_completedtask_after_duedate+=1
+                else:
+                    count_of_completed+=1
+                    count_completedtask_by_duedate+=1
+                print(duedate,'duedate')
+                print(completedate,'completed')
+                print(duedate < completedate)
+        average_of_task_lead =0
+        # print(cal_completedtask_by_duedate,"cal_completedtask_by_duedate-------------")
+        print(count_of_completed,'count_of_completed')
+        cal_completedtask_by_duedate = 0
+        cal_completedtask_after_duedate = 0
+
+        if count_completedtask_after_duedate:
+            cal_completedtask_after_duedate = int((count_completedtask_after_duedate/total_task_retrival)*100)
+        if count_completedtask_by_duedate:
+            cal_completedtask_by_duedate = int((count_completedtask_by_duedate/total_task_retrival)*100)
+        if count_of_completed:
+            average_of_task_lead = int((count_of_completed/total_task_retrival)*100)
+        command_for_task_ = None
+        color_of_bar = None
+        if average_of_task_lead >= 90:
+            command_for_task_ = '😀 Very Good!'
+            color_of_bar ="#2fc30d"
+            color_of_bar ="8ff090"
+        elif average_of_task_lead >= 50:
+            command_for_task_ ='🙂 ok'
+            color_of_bar ="#dfe159"
+        elif average_of_task_lead >=20:
+            command_for_task_ ="🙁 Consider"
+            color_of_bar ="#f3c349"
+        else:
+            command_for_task_ = "😢 bad"
+            color_of_bar ="#ee720d"
+
+        def average_calculation(start,end,project_name,from_date,to_date):
+            today = timezone.now().date()
+            total_tasks = None
+            completed_tasks = None
+            if start == 0 and end == 0:
+                total_tasks = Task.objects.filter(assigned_to=request.user.id,project__project_name=project_name,task_created_at__gte=from_date,task_created_at__lte=to_date).count()
+                completed_tasks = Task.objects.filter(assigned_to=request.user.id,project__project_name=project_name,task_created_at__gte=from_date,task_created_at__lte=to_date)
+            elif end == 0 and project_name == 0:
+                total_tasks = Task.objects.filter(due_date=start,assigned_to=request.user.id).count()
+                completed_tasks = Task.objects.filter(assigned_to=request.user.id,due_date=start,incomplete=False)
+            else:
+                total_tasks = Task.objects.filter(assigned_to=request.user.id,due_date__lte=end,due_date__gte=start).count()
+                completed_tasks = Task.objects.filter(assigned_to=request.user.id,due_date__lte=end,due_date__gte=start)
+
+            count_of_completed = 0
+            for task in completed_tasks:
+                if task.task_completed_at is not None:
+                    count_of_completed+=1
+            average_of_task =None
+            if count_of_completed:
+                average_of_task = int((count_of_completed/total_tasks)*100)
+            else:
+                average_of_task = 0
+            
+            return average_of_task
+
+        list_of_projects = Task.objects.filter(assigned_to=request.user.id).distinct()
+        distinct_projects = []
+        for project in list_of_projects:
+            if project.project.project_name not in distinct_projects:
+                distinct_projects.append(project.project.project_name)
+        percentage_of_project = []
+        for project in distinct_projects:
+            percentage = average_calculation(0,0,project,from_date_2_with_time_and_seconds,to_date_2_with_11_55_pm)
+            percentage_of_project.append(percentage)
+
+        # team members 
+        department_name = request.user.department
+        print(department_name)
+        
+        list_of_department_members = []
+        department_members = CustomUser.objects.filter(department=department_name).distinct()
+        for i in department_members:
+            
+            total_tasks = Task.objects.filter(assigned_to=i.id,task_created_at__gte=from_date_2_with_time_and_seconds,task_created_at__lte=to_date_2_with_11_55_pm).count()
+            completed_tasks = Task.objects.filter(assigned_to=i.id,task_created_at__gte=from_date_2_with_time_and_seconds,task_created_at__lte=to_date_2_with_11_55_pm)
+            
+            team_count_of_completed = 0
+            team_count_completedtask_by_duedate = 0
+            team_count_completedtask_after_duedate = 0
+
+            for task in completed_tasks:
+                if task.task_completed_at is not None:
+                    duedate = task.due_date
+                    str_completedate = str(task.task_completed_at).split(' ')[0]
+                    completedate = datetime.strptime(str_completedate,"%Y-%m-%d").date()
+                    if duedate < completedate:
+                        team_count_of_completed+=1
+                        team_count_completedtask_after_duedate+=1
+                    else:
+                        team_count_of_completed+=1
+                        team_count_completedtask_by_duedate+=1
+
+            average_of_task =0
+            team_cal_completedtask_by_duedate = 0
+            team_cal_completedtask_after_duedate = 0
+
+            if team_count_completedtask_after_duedate:
+                team_cal_completedtask_after_duedate = int((team_count_completedtask_after_duedate/total_tasks)*100)
+            if team_count_completedtask_by_duedate:
+                team_cal_completedtask_by_duedate = int((team_count_completedtask_by_duedate/total_tasks)*100)
+            if team_count_of_completed:
+                average_of_task = int((team_count_of_completed/total_tasks)*100)
+            
+
+            
+            print(i,'name')
+            print('total_count_tasks',total_tasks)
+            print( team_count_of_completed,' count_of_completed_tasks')
+            print('average',average_of_task)
+            
+            print('------------')
+            
+            final_ = [i.username,average_of_task,i.profile_picture,team_cal_completedtask_by_duedate,team_cal_completedtask_after_duedate]
+            list_of_department_members.append(final_)
+      
+        context ={
+            'average_lead_by_duedate':cal_completedtask_by_duedate,
+            'average_lead':average_of_task_lead,
+            'average_lead_after_duedate':cal_completedtask_after_duedate,
+            'from_date':from_date_,
+            'to_date':to_date_,
+            'command_for_task_':command_for_task_,
+            "labels_of_chart":distinct_projects,
+            "values_of_chart":percentage_of_project,
+            "list_of_department_members":list_of_department_members
+        }
+        return render(request,'reportview_filter.html',context)
+    
+    return HttpResponse('<h2>sorry</h2>')
+
+@login_required
+def profile_update_view(request,pk):
+    user = CustomUser.objects.get(id=pk)
+    print('1')
+    if request.method == "POST" and request.FILES.get('profile_picture'):
+        profile_picture_ = request.FILES['profile_picture']
+        print('2')
+        if profile_picture_:
+            user.profile_picture = profile_picture_
+            user.save()
+            print('3')
+            return JsonResponse({"message": "Profile updated successfully!","file":'/media/{profile_picture_}'})
+    print('4')
+    return JsonResponse({"message": "Profile!"})
+
+
 @login_required
 def dashboard(request):
     today = timezone.now().date()
@@ -29,14 +206,14 @@ def dashboard(request):
     start_of_month = today.replace(day=1)
     end_of_month = (start_of_month + timedelta(days=31)).replace(day=1) - timedelta(days=1)
     end_of_lastmonth = start_of_month - timedelta(days=1)
-    start_of_lastmonth = end_of_lastmonth - timedelta(days=29)
+    start_of_lastmonth = end_of_lastmonth.replace(day=1)
 
     today_task = Task.objects.filter(assigned_to=request.user.id,due_date=today)
     yesterday = Task.objects.filter(assigned_to =request.user.id,due_date=yesterday)
     this_week = Task.objects.filter(assigned_to=request.user.id,due_date__gte=start_of_week,due_date__lte=end_of_week)
     last_week = Task.objects.filter(assigned_to=request.user.id,due_date__gte=start_of_lastweek,due_date__lte=end_of_lastweek)
     this_month = Task.objects.filter(assigned_to=request.user.id,due_date__gte=start_of_month,due_date__lte=end_of_month)
-    last_month = Task.objects.filter(assigned_to=request.user.id,due_date__lt=start_of_lastweek)
+    last_month = Task.objects.filter(assigned_to=request.user.id,due_date__lte=end_of_lastmonth,due_date__gte=start_of_lastmonth)
     total_count = len(today_task)+len(yesterday)+len(this_week)+len(last_week)+len(this_month)+len(last_month)+len(last_month)
     users_project = Task.objects.filter(assigned_to=request.user.id).distinct()
     project_list = {}
@@ -72,7 +249,7 @@ def specific_task(request,name):
     start_of_month = today.replace(day=1)
     end_of_month = (start_of_month + timedelta(days=31)).replace(day=1) - timedelta(days=1)
     end_of_lastmonth = start_of_month - timedelta(days=1)
-    start_of_lastmonth = end_of_lastmonth - timedelta(days=29)
+    start_of_lastmonth = end_of_lastmonth.replace(day=1)
 
     department = Task.objects.filter(assigned_to=request.user.id).first()
     users_project = Task.objects.filter(assigned_to=request.user.id).distinct()
@@ -89,7 +266,7 @@ def specific_task(request,name):
         this_week = Task.objects.filter(assigned_to=request.user.id,due_date__gte=start_of_week,due_date__lte=end_of_week,status = name)
         last_week = Task.objects.filter(assigned_to=request.user.id,due_date__gte=start_of_lastweek,due_date__lte=end_of_lastweek,status = name)
         this_month = Task.objects.filter(assigned_to=request.user.id,due_date__gte=start_of_month,due_date__lte=end_of_month,status = name)
-        last_month = Task.objects.filter(assigned_to=request.user.id,due_date__lt=start_of_lastweek,status = name)
+        last_month = Task.objects.filter(assigned_to=request.user.id,due_date__lte=end_of_lastmonth,due_date__gte=start_of_lastmonth,status = name)
         total_count = len(today_task)+len(yesterday)+len(this_week)+len(last_week)+len(this_month)+len(last_month)+len(last_month)
     elif name == 'all':
         project_name = ""
@@ -98,7 +275,7 @@ def specific_task(request,name):
         this_week = Task.objects.filter(assigned_to=request.user.id,due_date__gte=start_of_week,due_date__lte=end_of_week)
         last_week = Task.objects.filter(assigned_to=request.user.id,due_date__gte=start_of_lastweek,due_date__lte=end_of_lastweek)
         this_month = Task.objects.filter(assigned_to=request.user.id,due_date__gte=start_of_month,due_date__lte=end_of_month)
-        last_month = Task.objects.filter(assigned_to=request.user.id,due_date__lt=start_of_lastweek)
+        last_month = Task.objects.filter(assigned_to=request.user.id,due_date__lte=end_of_lastmonth,due_date__gte=start_of_lastmonth)
         total_count = len(today_task)+len(yesterday)+len(this_week)+len(last_week)+len(this_month)+len(last_month)+len(last_month)
     else:
         project_id = Project.objects.filter(project_name=name).first()
@@ -108,7 +285,7 @@ def specific_task(request,name):
         this_week = Task.objects.filter(project=project_id.id,assigned_to=request.user.id,due_date__gte=start_of_week,due_date__lte=end_of_week)
         last_week = Task.objects.filter(project=project_id.id,assigned_to=request.user.id,due_date__gte=start_of_lastweek,due_date__lte=end_of_lastweek)
         this_month = Task.objects.filter(project=project_id.id,assigned_to=request.user.id,due_date__gte=start_of_month,due_date__lte=end_of_month)
-        last_month = Task.objects.filter(project=project_id.id,assigned_to=request.user.id,due_date__lt=start_of_lastweek)
+        last_month = Task.objects.filter(project=project_id.id,assigned_to=request.user.id,due_date__lte=end_of_lastmonth,due_date__gte=start_of_lastmonth)
         total_count = len(today_task)+len(yesterday)+len(this_week)+len(last_week)+len(this_month)+len(last_month)+len(last_month)
 
     department= request.user.department
@@ -206,6 +383,12 @@ def over_due(request):
 
 @login_required
 def add_user(request):
+    users_project = Task.objects.filter(assigned_to=request.user.id).distinct()
+    project_list = {}
+    for task in users_project:
+        if task.project.project_name not in project_list:
+            task_count = len(Task.objects.filter(project=task.project,assigned_to=request.user.id))
+            project_list[task.project.project_name] = task_count
     department= request.user.department
     if request.method =='POST':
         form = CustomUserForm(data=request.POST)
@@ -215,13 +398,19 @@ def add_user(request):
             return redirect('add_user')
         else:
             messages.error(request,'error')
-            return render(request,'add_user.html',{'form':form})
+            return render(request,'add_user.html',{'form':form,'projects':project_list})
     form =CustomUserForm()
-    return render(request,'add_user.html',{'form':form,'department':department})
+    return render(request,'add_user.html',{'form':form,'department':department,'projects':project_list})
 
 
 @login_required
 def Team_mem(request):
+    users_project = Task.objects.filter(assigned_to=request.user.id).distinct()
+    project_list = {}
+    for task in users_project:
+        if task.project.project_name not in project_list:
+            task_count = len(Task.objects.filter(project=task.project,assigned_to=request.user.id))
+            project_list[task.project.project_name] = task_count
     department= request.user.department
     members = CustomUser.objects.filter(department=request.user.department).exclude(username=request.user).order_by('username')
     mem_dict ={}
@@ -263,7 +452,7 @@ def Team_mem(request):
         other_mem_list[username_.username]['pending']=pending
         other_mem_list[username_.username]["in_progress"]=in_progress
     print(other_mem_list)
-    return render(request,'team_mem.html',{"mem_dict":mem_dict,'department':department,'other_mem_list':other_mem_list})
+    return render(request,'team_mem.html',{"mem_dict":mem_dict,'department':department,'other_mem_list':other_mem_list,'projects':project_list})
 
 @login_required
 def profile_update(request,pk):
@@ -277,14 +466,14 @@ def profile_update(request,pk):
     start_of_month = today.replace(day=1)
     end_of_month = (start_of_month + timedelta(days=31)).replace(day=1) - timedelta(days=1)
     end_of_lastmonth = start_of_month - timedelta(days=1)
-    start_of_lastmonth = end_of_lastmonth - timedelta(days=29)
+    start_of_lastmonth = end_of_lastmonth.replace(day=1)
 
     today_task = Task.objects.filter(assigned_to=pk,due_date=today)
     yesterday = Task.objects.filter(assigned_to =pk,due_date=yesterday)
     this_week = Task.objects.filter(assigned_to=pk,due_date__gte=start_of_week,due_date__lte=end_of_week)
     last_week = Task.objects.filter(assigned_to=pk,due_date__gte=start_of_lastweek,due_date__lte=end_of_lastweek)
     this_month = Task.objects.filter(assigned_to=pk,due_date__gte=start_of_month,due_date__lte=end_of_month)
-    last_month = Task.objects.filter(assigned_to=pk,due_date__lt=start_of_lastweek)
+    last_month = Task.objects.filter(assigned_to=pk,due_date__lte=end_of_lastmonth,due_date__gte=start_of_lastmonth)
     total_count = len(today_task)+len(yesterday)+len(this_week)+len(last_week)+len(this_month)+len(last_month)+len(last_month)
 
     department = Task.objects.filter(assigned_to=request.user.id).first()
@@ -368,9 +557,9 @@ def project_creation(request):
             form.save()
             messages.success(request, "Your project has been created successfully!")
             return redirect('project_creation')
-        return render(request,"project_creation.html",{'form':form})
+        return render(request,"project_creation.html",{'form':form,"department":department,"projects":project_list})
     form = project_form()
-    return render(request,'project_creation.html',{'form':form})
+    return render(request,'project_creation.html',{'form':form,"department":department,"projects":project_list})
 
 def profile_view(request,pk=None):
     user = CustomUser.objects.get(id=pk)
@@ -467,3 +656,213 @@ def waiting_user_data(request,id):
         except CustomUser.DoesNotExist:
             return JsonResponse({'user_data':[]})
     return JsonResponse({'error'})
+
+
+@login_required
+def report_view(request):
+    total_task_retrival = Task.objects.filter(assigned_to=request.user.id).count()
+    completed_tasks = Task.objects.filter(assigned_to=request.user.id,incomplete=False)
+    count_of_completed = 0
+    count_completedtask_by_duedate = 0
+    count_completedtask_after_duedate = 0
+    for task in completed_tasks:
+        if task.task_completed_at is not None:
+            duedate = task.due_date
+            str_completedate = str(task.task_completed_at).split(' ')[0]
+            completedate = datetime.strptime(str_completedate,"%Y-%m-%d").date()
+            if duedate < completedate:
+                count_of_completed+=1
+                count_completedtask_after_duedate+=1
+            else:
+                count_of_completed+=1
+                count_completedtask_by_duedate+=1
+            print(duedate,'duedate')
+            print(completedate,'completed')
+            print(duedate < completedate)
+    average_of_task_lead =None
+    # print(cal_completedtask_by_duedate,"cal_completedtask_by_duedate-------------")
+    print(count_of_completed,'count_of_completed')
+    over_cal_average_of_task_lead = 0
+    cal_completedtask_by_duedate = 0
+    cal_completedtask_after_duedate = 0
+
+    if count_completedtask_after_duedate:
+        cal_completedtask_after_duedate = int((count_completedtask_after_duedate/total_task_retrival)*100)
+    if count_completedtask_by_duedate:
+        cal_completedtask_by_duedate = int((count_completedtask_by_duedate/total_task_retrival)*100)
+    if count_of_completed:
+        average_of_task_lead = int((count_of_completed/total_task_retrival)*100)
+    command_for_task_ = None
+    color_of_bar = None
+    if average_of_task_lead >= 90:
+        command_for_task_ = '😀 Very Good!'
+        color_of_bar ="#2fc30d"
+        color_of_bar ="8ff090"
+    elif average_of_task_lead >= 50:
+        command_for_task_ ='🙂 ok'
+        color_of_bar ="#dfe159"
+    elif average_of_task_lead >=20:
+        command_for_task_ ="🙁 Consider"
+        color_of_bar ="#f3c349"
+    else:
+        command_for_task_ = "😢 bad"
+        color_of_bar ="#ee720d"
+
+    def average_calculation(start,end,project_name):
+        today = timezone.now().date()
+        total_tasks = None
+        completed_tasks = None
+        if start == 0 and end == 0:
+            total_tasks = Task.objects.filter(assigned_to=request.user.id,project__project_name=project_name).count()
+            completed_tasks = Task.objects.filter(assigned_to=request.user.id,project__project_name=project_name)
+        elif end == 0 and project_name == 0:
+            total_tasks = Task.objects.filter(due_date=start,assigned_to=request.user.id).count()
+            completed_tasks = Task.objects.filter(assigned_to=request.user.id,due_date=start,incomplete=False)
+        else:
+            total_tasks = Task.objects.filter(assigned_to=request.user.id,due_date__lte=end,due_date__gte=start).count()
+            completed_tasks = Task.objects.filter(assigned_to=request.user.id,due_date__lte=end,due_date__gte=start)
+
+        count_of_completed = 0
+        for task in completed_tasks:
+            if task.task_completed_at is not None:
+                count_of_completed+=1
+        average_of_task =None
+        if count_of_completed:
+            average_of_task = int((count_of_completed/total_tasks)*100)
+        else:
+            average_of_task = 0
+        
+        return average_of_task
+    
+    today = timezone.now().date()
+    yesterday = today -timedelta(days=1)
+    yesterday_average = average_calculation(yesterday,0,0)
+    today_average = average_calculation(today,0,0)
+
+    for_last_week = today - timedelta(days=today.weekday())
+    last_week_start = for_last_week - timedelta(days=7)
+    last_week_end = for_last_week - timedelta(days=1)
+
+    last_week_average = average_calculation(last_week_start,last_week_end,0)
+
+    this_week_start = today - timedelta(days=today.weekday())
+    this_week_end = for_last_week + timedelta(days=6)
+
+    this_week_average = average_calculation(this_week_start,this_week_end,0)
+
+    start_of_month = today.replace(day=1)
+    end_of_lastmonth = start_of_month - timedelta(days=1)
+    start_of_lastmonth = end_of_lastmonth.replace(day=1)
+
+    lastmonth_average = average_calculation(start_of_lastmonth,end_of_lastmonth,0)
+
+    start_of_this_month = today.replace(day=1)
+    next_month = start_of_this_month + timedelta(days=32)
+    start_of_nextmonth = next_month.replace(day=1)
+    end_of_this_month = start_of_nextmonth - timedelta(days=1)
+
+    this_month_average = average_calculation(start_of_this_month,end_of_this_month,0)
+
+
+    start_of_the_year = today.replace(day=1,month=1)
+    last_year_end = start_of_the_year - timedelta(days=1)
+    last_year_start = last_year_end.replace(day=1,month=1)
+
+    last_year_average = average_calculation(last_year_start,last_year_end,0)
+
+    start_of_this_year = today.replace(day=1,month=1)
+    end_of_this_year = start_of_this_year.replace(day=31,month=12)
+    currentyear_average = average_calculation(start_of_this_year,end_of_this_year,0)
+
+    list_of_projects = Task.objects.filter(assigned_to=request.user.id).distinct()
+    distinct_projects = []
+    for project in list_of_projects:
+        if project.project.project_name not in distinct_projects:
+            distinct_projects.append(project.project.project_name)
+    
+    percentage_of_project = []
+    for project in distinct_projects:
+        percentage = average_calculation(0,0,project)
+        percentage_of_project.append(percentage)
+
+
+    # team members 
+    department_name = request.user.department
+    print(department_name)
+    
+    list_of_department_members = []
+    department_members = CustomUser.objects.filter(department=department_name).distinct()
+    for i in department_members:
+        
+        total_tasks = Task.objects.filter(assigned_to=i.id).count()
+        completed_tasks = Task.objects.filter(assigned_to=i.id)
+        
+        team_count_of_completed = 0
+        team_count_completedtask_by_duedate = 0
+        team_count_completedtask_after_duedate = 0
+
+        
+
+        for task in completed_tasks:
+            if task.task_completed_at is not None:
+                duedate = task.due_date
+                str_completedate = str(task.task_completed_at).split(' ')[0]
+                completedate = datetime.strptime(str_completedate,"%Y-%m-%d").date()
+                if duedate < completedate:
+                    team_count_of_completed+=1
+                    team_count_completedtask_after_duedate+=1
+                else:
+                    team_count_of_completed+=1
+                    team_count_completedtask_by_duedate+=1
+
+        average_of_task =0
+        team_cal_completedtask_by_duedate = 0
+        team_cal_completedtask_after_duedate = 0
+
+        if team_count_completedtask_after_duedate:
+            team_cal_completedtask_after_duedate = int((team_count_completedtask_after_duedate/total_tasks)*100)
+        if team_count_completedtask_by_duedate:
+            team_cal_completedtask_by_duedate = int((team_count_completedtask_by_duedate/total_tasks)*100)
+        if team_count_of_completed:
+            average_of_task = int((team_count_of_completed/total_tasks)*100)
+        
+
+        
+        print(i,'name')
+        print('total_count_tasks',total_tasks)
+        print( team_count_of_completed,' count_of_completed_tasks')
+        print('average',average_of_task)
+        
+        print('------------')
+        
+        final_ = [i.username,average_of_task,i.profile_picture,team_cal_completedtask_by_duedate,team_cal_completedtask_after_duedate]
+        list_of_department_members.append(final_)
+
+    print(list_of_department_members)
+    profile_pic = request.user.profile_picture
+    print(profile_pic,'ffffffffffffff')
+    print(team_cal_completedtask_by_duedate)
+    print(team_count_completedtask_after_duedate,'ssss')
+
+
+    context={
+        'profile':profile_pic,
+        'average_lead_by_duedate':cal_completedtask_by_duedate,
+        'average_lead_after_duedate':cal_completedtask_after_duedate,
+        'average_lead':average_of_task_lead,
+        "command_for_task_":command_for_task_,
+        "color_of_bar":color_of_bar,
+        "average_today":today_average,
+        "average_yesterday":yesterday_average,
+        "average_thisweek":this_week_average,
+        "average_lastweek":last_week_average,
+        "average_thismonth":this_month_average,
+        "average_lastmonth":lastmonth_average,
+        "average_thisyear":currentyear_average,
+        "average_lastyear":last_year_average,
+        "labels_of_chart":distinct_projects,
+        "values_of_chart":percentage_of_project,
+        "list_of_department_members":list_of_department_members
+        }
+
+    return render(request,'reportview.html',context)

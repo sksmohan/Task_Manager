@@ -25,7 +25,7 @@ recordBtn.addEventListener('click', async () => {
     };
 
     mediaRecorder.onstop = () => {
-        recordedAudioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        recordedAudioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
         const audioUrl = URL.createObjectURL(recordedAudioBlob);
         audioPreview.src = audioUrl;
         audioPreview.classList.remove('hidden');

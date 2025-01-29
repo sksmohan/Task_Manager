@@ -150,9 +150,9 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'raguv7218@gmail.com'
-EMAIL_HOST_PASSWORD = "lncp sifr runh smmh"
-DEFAULT_FROM_EMAIL = 'raguv7218@gmail.com'
+EMAIL_HOST_USER = 'sksnotify@gmail.com'
+EMAIL_HOST_PASSWORD = "znpb uyjk nyai wciw"
+DEFAULT_FROM_EMAIL = 'sksnotify@gmail.com'
 
 
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'

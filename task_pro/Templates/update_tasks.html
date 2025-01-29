@@ -148,40 +148,12 @@
             <p style="width: 500px;">{{ form.message }}</p>
             <div style="position: relative; left: 660px; bottom: 50px; width: 300px;">
                 <button type="submit" class="submit_button">Submit</button>
-                <a href="{% url 'dashboard' %}" class="back_button">Back</a>
+                
+                <a class="back_button" href="javascript:void(0);" onclick="window.history.back()">Go Back</a>
             </div>
         </form>
     </section>
     <script src="{% static 'js/update_task.js' %}"></script>
 
 </body>
-<script>
-    // Form submission
-    const form = document.querySelector('form');
-    form.addEventListener('submit', async (event) => {
-        event.preventDefault();
-
-        const formData = new FormData(form); // Create FormData from the form
-
-        // Append the recorded audio blob to the form data if it exists
-        if (recordedAudioBlob) {
-            formData.append('audio', recordedAudioBlob, 'recording.webm');
-        }
-
-        const response = await fetch(`/update_task/{{ tasks.id }}/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-            },
-            body: formData,
-        });
-
-        if (response.ok) {
-            console.log('Form submitted successfully!');
-            window.location.href = "{% url 'dashboard' %}";
-        } else {
-            console.error('Error submitting form');
-        }
-    });
-</script>
 </html>

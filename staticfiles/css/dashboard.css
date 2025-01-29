@@ -2,6 +2,7 @@ body{
     background-color: rgb(114, 94, 134);
 
 }
+
 main{
     display: flex;
     flex-direction:row;
@@ -42,15 +43,22 @@ main{
     text-decoration: none;
 }
 
+nav a:hover{
+    border-color: white;
+    background-color: rgb(114, 94, 134);
+
+
+}
+
 .side-bar-menu:hover{
     background-color: rgb(114, 94, 134);
     border-color: white;
 }
- 
+
 .second-sec{
     margin-left:5px;
     width:80%;
-    height: 570px;
+    height: 95vh;
     border-radius: 5px;
     overflow-x: auto;
     overflow-y: auto;
@@ -65,12 +73,6 @@ main{
     width: 100%;
 }
 
-.status_warning{
-    background-color: red;
-    color: white;
-    border-radius: 10px ;
-}
-
 .main-table tr{
     text-align: center;
     padding-top: 10px;
@@ -80,6 +82,7 @@ main{
 .main-table tr td{
     padding: 10px;
 }
+
 .table_head{
     color: white;
     width: 700px;;
@@ -90,13 +93,14 @@ main{
     max-width: 350px;
     overflow-x: auto;
     text-align: left;
-   
 }
+
 .table_div1{
     max-height: 250px;
     overflow-x: auto;
     overflow-y: auto;
 }
+
 nav{
 
     position: sticky;
@@ -106,6 +110,7 @@ nav{
     border-bottom:2px solid white;
 
 }
+
 nav a{
     text-decoration: none;
     padding:5px;
@@ -114,11 +119,18 @@ nav a{
     border-radius: 5px;
     margin-right: 10px;
     color: black;
-}   
+}
+
 @media (min-width: 1681px) and (max-width: 1920px) {
     .second-sec{
-        height: 970px;
+        height: 670px;
         width:80%;
 
+    }
+    .table_firstdata{
+        width:350px;
+        max-width: 350px;
+        overflow-x: auto;
+        text-align: left;
     }
 }

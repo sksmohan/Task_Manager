@@ -1,139 +1,160 @@
-    {% extends 'dashboard.html' %}
-    {% block head %}
-    {% load static %}
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        {% block title %}<title>Task | New_task </title>{% endblock %}
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-        <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-        <style>
-            .task_form_title{
-                width:200px;
-                height: 40px;
-            }
-            .task_form_description{
-                width: 400px;
-                height: 80px;
-            }
-            .new_task{
-                margin:2%;
-            }
-            .common1{
-                border-radius: 7px;
-                padding:5px;
-            }
-            .submit_button{
-                padding:5px;
-                border-radius: 7px;
-                width:100px;
-            }
-        </style>
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                flatpickr(".task_form_due_date", {
-                    dateFormat: "Y-m-d"
-                });
+{% extends 'dashboard.html' %}
+{% block head %}
+{% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% block title %}<title>Task | New_task </title>{% endblock %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <style>
+        .task_form_title{
+            width:200px;
+            height: 40px;
+        }
+        .task_form_description{
+            width: 400px;
+            height: 80px;
+        }
+        .new_task{
+            margin:2%;
+        }
+        .common1{
+            border-radius: 7px;
+            padding:5px;
+        }
+        .submit_button{
+            padding:5px;
+            border-radius: 7px;
+            width:100px;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const new_task_creation_button = document.querySelector('#new_task_creation');
+            console.log(new_task_creation_button,'Elements fetched1')
+            const form_submission = document.querySelector('#form_selection');
+            const submit_button = document.querySelector('#submit_button_');
+
+            console.log(form_submission, submit_button, "Elements fetched2");
+
+            form_submission.addEventListener('submit', function(event) {
+                submit_button.disabled = true;
+                console.log('Submit button disabled');
+        
             });
-            const due_date = document.querySelector('.task_form_due_date'); 
+            flatpickr(".task_form_due_date", {
+                dateFormat: "Y-m-d"
+            });
+            const due_date = document.querySelector('.task_form_due_date');
+            const project_select = document.querySelector('.task_form_project');
             console.log(due_date)
-            due_date.setAttribute('required',true);
-        </script>
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-            const dapartments_select = document.querySelector('#select_department');
-            const users_list = document.querySelector('#_users_list');
+            // due_date.setAttribute('required',true);
+            due_date.required = true;
+            due_date.readOnly = false;
+            event.preventDefault();
+        });
+        
 
-            dapartments_select.addEventListener('change', function () {
-                const department_name = this.value;
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+        const dapartments_select = document.querySelector('#select_department');
+        const users_list = document.querySelector('#_users_list');
 
-                users_list.innerHTML = '<option value="">Select User</option>';
-                if (!department_name) {
-                    users_list.setAttribute('disabled', true);
-                    return;
+        dapartments_select.required =true;
+        _users_list.required = true;
+
+        dapartments_select.addEventListener('change', function () {
+            const department_name = this.value;
+
+            users_list.innerHTML = '<option value="">Select User</option>';
+            if (!department_name) {
+                users_list.setAttribute('disabled', true);
+                return;
+            }
+
+            users_list.removeAttribute('disabled');
+            fetch('/getuser_department/' + department_name + '/', {
+                method: "GET",
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
                 }
-
-                users_list.removeAttribute('disabled');
-                fetch('/getuser_department/' + department_name + '/', {
-                    method: "GET",
-                    headers: {
-                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.users_list.length > 0) {
-                        data.users_list.forEach(user => {
-                            const option = document.createElement('option');
-                            option.value = user.username;
-                            option.textContent = user.username;
-                            users_list.appendChild(option);
-                        });
-                    } else {
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.users_list.length > 0) {
+                    data.users_list.forEach(user => {
                         const option = document.createElement('option');
-                        option.value = "";
-                        option.textContent = "No User Available";
+                        option.value = user.username;
+                        option.textContent = user.username;
                         users_list.appendChild(option);
-                    }
-                })
-                .catch(error => {
-                    console.log("Error fetching ", error);
-                });
+                    });
+                } else {
+                    const option = document.createElement('option');
+                    option.value = "";
+                    option.textContent = "No User Available";
+                    users_list.appendChild(option);
+                }
+            })
+            .catch(error => {
+                console.log("Error fetching ", error);
             });
         });
-        </script>
-    {% endblock %}
-    {% block content %}
-    <div class="new_task">
-        <div>
-            <p style="color:rgb(110, 236, 110);"> {% if messages %}
-                    {% for message in messages %}
-                        {{ message }}
-                    {% endfor %}
-                {% endif %}
-            </p>
-        </div>
-        <form action="" method="POST">
-            {% csrf_token %}
-            <table cellspacing="20">
-                <tr>
-                    <td>{{ form.title.label }}</td>
-                    <td>: {{ form.title }}</td>
-                    <td>{{ form.status.label }}</td>
-                    <td>: {{ form.status }}</td>
-                </tr>
-                <tr>
-                    <td>{{ form.due_date.label }}</td>
-                    <td>: {{ form.due_date }}</td>
-                    <td>assigned_to</td>
-                    <td>
-                        <select name="select_department" id="select_department" class="common1">
-                            <option value="">Select_department</option>
-                            {% for department in departments %}
-                                <option value="{{ department }}">{{ department }}</option>
-                            {% endfor %}
-                        </select>
-                        <div id="users_list_div">
-                            <select name="assigned_to" id="_users_list" class="common1">
-                                <option value="Select_User"></option>
-                            </select>
-                        </div>
-                    </td>
-                </tr> 
-                <tr>
-                    <td>{{ form.description.label }}</td>
-                    <td colspan="3"> {{ form.description }}</td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>{{ form.project.label }}</td>
-                    <td>: {{ form.project }}</td>
-                    <td></td>
-                    <td><button type="submit" class="submit_button">Submit</button></td>
-                </tr>
-            </table>
-        </form>
+    });
+    </script>
+{% endblock %}
+{% block content %}
+<div class="new_task">
+    <div>
+        <p style="color:rgb(110, 236, 110);"> {% if messages %}
+                {% for message in messages %}
+                    {{ message }}
+                {% endfor %}
+            {% endif %}
+        </p>
     </div>
-    {% endblock %}
+    <form action="#" method="POST" id="form_selection">
+        {% csrf_token %}
+        <table cellspacing="20">
+            <tr>
+                <td>{{ form.title.label }}</td>
+                <td>: {{ form.title }}</td>
+                <td>{{ form.status.label }}</td>
+                <td>: {{ form.status }}</td>
+            </tr>
+            <tr>
+                <td>{{ form.due_date.label }}</td>
+                <td>: {{ form.due_date }}</td>
+                <td>assigned_to</td>
+                <td>
+                    <select name="select_department" id="select_department" class="common1">
+                        <option value="">Select_department</option>
+                        {% for department in departments %}
+                            <option value="{{ department }}">{{ department }}</option>
+                        {% endfor %}
+                    </select>
+                    <div id="users_list_div">
+                        <select name="assigned_to" id="_users_list" class="common1">
+                            <option value="Select_User"></option>
+                        </select>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>{{ form.description.label }}</td>
+                <td colspan="3"> {{ form.description }}</td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>{{ form.project.label }}</td>
+                <td>: {{ form.project }}</td>
+                <td></td>
+                <td><button type="submit" class="submit_button" id="submit_button_">Submit</button></td>
+            </tr>
+        </table>
+    </form>
+</div>
+{% endblock %}

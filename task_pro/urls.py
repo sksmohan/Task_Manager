@@ -22,5 +22,8 @@ urlpatterns =[
     path('delete_user/<int:pk>',delete_user,name='delete_user'),
     path("get-tasks-for-user/<int:user_id>/",get_tasks_for_user,name="get_tasks_for_user"),
     path('waiting_user/<int:id>/',waiting_user_data,name="waiting_user"),
-    path('getuser_department/<str:name>/',getuser_department,name="getuser_department")
+    path('getuser_department/<str:name>/',getuser_department,name="getuser_department"),
+    path('report_view',report_view,name="report_view"),
+    path('profile_update_view/<int:pk>',profile_update_view,name="profile_update_view"),
+    path('filter_of_charts',filter_of_charts,name='filter_of_charts')
 ]
