@@ -25,11 +25,58 @@
             border-radius: 7px;
         }
     </style>
+    <script>
+        document.addEventListener('DOMContentLoaded',function(){
+            const fetch_project_name = document.getElementById('fetch_project_name');
+            const project_name_error = document.getElementById('project_name_error');
+            const project_creation_button = document.getElementById('project_creation_button');
+            const Project_success_message = document.getElementById('Project_success_message');
+
+            fetch_project_name.addEventListener('input',(event)=>{
+                console.log(fetch_project_name.value)
+                data = {"project_name":fetch_project_name.value}
+                if(Project_success_message){
+                    Project_success_message.style.display ="none";
+                }
+                async function check_project_name(){
+                    try{
+                        const response = await fetch('/check_project_exist/',{
+                            method:'POST',
+                            headers:{
+                                'Contenet-Type': 'application/json',
+                                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                            },
+                            body:JSON.stringify(data)
+                        });
+                        if(!response.ok){
+                            throw new Error('sorry')
+                        }
+                        const result = await response.json()
+                        if(result.message !== "unique"){
+                            project_name_error.innerHTML = result.message;
+                            project_creation_button.disabled = true
+                            project_creation_button.style.backgroundColor ="#5d5d7d"
+                            console.log(result.message,'ddddd')
+                        }else{
+                            project_name_error.innerHTML = "";
+                            project_creation_button.disabled =false;
+                            project_creation_button.style.backgroundColor ="blue"
+                        }
+                    }catch{
+                        console.log('got an error ')
+                    }
+                }
+                check_project_name()
+                console.log('ss')
+            })
+        })
+    </script>
 {% endblock %}
 {% block content %}
 <div class="nw_project" style="margin-left:100px;margin-top:10px;">
     <div>
-        <p style="color:rgb(110, 236, 110);"> {% if messages %}
+        <p id="project_name_error" style="color:red;"></p>
+        <p style="color:rgb(110, 236, 110);" id="Project_success_message"> {% if messages %}
                 {% for message in messages %}
                     {{ message }}
                 {% endfor %}

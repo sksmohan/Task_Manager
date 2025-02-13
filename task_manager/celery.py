@@ -24,10 +24,16 @@ for_monthly_duedate = today + timedelta(days=11)
 for_weekly_duedate = today + timedelta(days=7)
 today_date = today + timedelta(days=1)
 
+
 app.conf.beat_schedule ={
     'for_testing':{
         'task':'task_pro.task.testing_view',
         'schedule':crontab(hour=6,minute=29),
+        'args':(1000,)
+    },
+    'sunday_task_creation':{
+        'task':'task_pro.task.sunday_task_creation_view',
+        'schedule':crontab(hour=6,minute=50,day_of_week="mon-sat"),
         'args':(1000,)
     },
     'every_day_task':{

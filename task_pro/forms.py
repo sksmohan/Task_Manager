@@ -114,11 +114,12 @@ class taskform(forms.ModelForm):
 class Taskcreation_form(forms.ModelForm):
     class Meta:
         model = Task
-        fields = fields = ['title', 'description', 'due_date', 'status','project']
+        fields = fields = ['title', 'description', 'due_date', 'status','project','including_sunday']
 
         widgets ={
             'title':forms.TextInput(attrs={
                 'class':"task_form_title common1",
+                'id':'task_form_title_id'
             }),
             'description':forms.Textarea(attrs={
                 'class':'task_form_description common1'
@@ -143,6 +144,9 @@ class Taskcreation_form(forms.ModelForm):
             "project":forms.Select(attrs={
                 'class':'task_form_project common1',
                 'required':True
+            }),
+            "including_sunday":forms.CheckboxInput(attrs={
+                'class':'task_form_incl_sunday'
             })
         }
 
@@ -153,7 +157,8 @@ class project_form(forms.ModelForm):
 
         widgets={
             'project_name':forms.TextInput(attrs={
-                'class':'project_name_1 project_c'
+                'class':'project_name_1 project_c',
+                'id':'fetch_project_name'
             }),
             'description':forms.Textarea(attrs={
                 'class':'description_1 project_c'

@@ -25,5 +25,7 @@ urlpatterns =[
     path('getuser_department/<str:name>/',getuser_department,name="getuser_department"),
     path('report_view',report_view,name="report_view"),
     path('profile_update_view/<int:pk>',profile_update_view,name="profile_update_view"),
-    path('filter_of_charts',filter_of_charts,name='filter_of_charts')
+    path('filter_of_charts',filter_of_charts,name='filter_of_charts'),
+    path('check_title_unique/',check_title_unique,name='check_title_unique'),
+    path('check_project_exist/',check_project_exist,name='check_project_exist')
 ]

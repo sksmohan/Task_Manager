@@ -13,22 +13,27 @@
             width:200px;
             height: 40px;
         }
+
         .task_form_description{
             width: 400px;
             height: 80px;
         }
+
         .new_task{
             margin:2%;
         }
+
         .common1{
             border-radius: 7px;
             padding:5px;
         }
+
         .submit_button{
             padding:5px;
             border-radius: 7px;
             width:100px;
         }
+
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -55,58 +60,105 @@
             due_date.readOnly = false;
             event.preventDefault();
         });
-        
+
 
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-        const dapartments_select = document.querySelector('#select_department');
-        const users_list = document.querySelector('#_users_list');
+            const dapartments_select = document.querySelector('#select_department');
+            const users_list = document.querySelector('#_users_list');
+            const title_task = document.getElementById('task_form_title_id');
+            const title_error_fetch = document.getElementById('title_error_fetch');
+            const message_fectching = document.getElementById('message_fectching');
+            const submit_button = document.querySelector('#submit_button_');
 
-        dapartments_select.required =true;
-        _users_list.required = true;
+            console.log(title_task)
 
-        dapartments_select.addEventListener('change', function () {
-            const department_name = this.value;
-
-            users_list.innerHTML = '<option value="">Select User</option>';
-            if (!department_name) {
-                users_list.setAttribute('disabled', true);
-                return;
-            }
-
-            users_list.removeAttribute('disabled');
-            fetch('/getuser_department/' + department_name + '/', {
-                method: "GET",
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            title_task.addEventListener('input',(event)=>{
+                event.preventDefault();
+                if(message_fectching){
+                    message_fectching.style.display ="none";
                 }
+                
+                async function fetch_title(){
+                    data ={'title':title_task.value}
+                    console.log(data)
+
+                    try{
+                        const response = await fetch('/check_title_unique/',{
+                            method:'POST',
+                            headers:{
+                                'Contenet-Type': 'application/json',
+                                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+
+                            },
+                            body:JSON.stringify(data)
+                        });
+                        if (!response.ok){
+                            throw new Error('sorry')
+                        };
+                        const result = await response.json()
+                        console.log(result.message);
+                        if(result.message !== "unique"){
+                            title_error_fetch.innerHTML = result.message;
+                            submit_button.disabled =true;
+                        }else{
+                            title_error_fetch.innerHTML = "";
+                            submit_button.disabled = false;
+                        };
+                    }catch{
+                        console,log('errorrrrr')
+                    }
+                };
+                fetch_title();
+                console.log('so');
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.users_list.length > 0) {
-                    data.users_list.forEach(user => {
+
+            dapartments_select.required =true;
+            _users_list.required = true;
+
+            dapartments_select.addEventListener('change', function () {
+                const department_name = this.value;
+
+                users_list.innerHTML = '<option value="">Select User</option>';
+                if (!department_name) {
+                    users_list.setAttribute('disabled', true);
+                    return;
+                }
+
+                users_list.removeAttribute('disabled');
+                fetch('/getuser_department/' + department_name + '/', {
+                    method: "GET",
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.users_list.length > 0) {
+                        data.users_list.forEach(user => {
+                            const option = document.createElement('option');
+                            option.value = user.username;
+                            option.textContent = user.username;
+                            users_list.appendChild(option);
+                        });
+                    } else {
                         const option = document.createElement('option');
-                        option.value = user.username;
-                        option.textContent = user.username;
+                        option.value = "";
+                        option.textContent = "No User Available";
                         users_list.appendChild(option);
-                    });
-                } else {
-                    const option = document.createElement('option');
-                    option.value = "";
-                    option.textContent = "No User Available";
-                    users_list.appendChild(option);
-                }
-            })
-            .catch(error => {
-                console.log("Error fetching ", error);
+                    }
+                })
+                .catch(error => {
+                    console.log("Error fetching ", error);
+                });
             });
         });
-    });
     </script>
 {% endblock %}
 {% block content %}
 <div class="new_task">
+    <p style="color: red;" id="title_error_fetch"></p>
     <div>
         <p style="color:rgb(110, 236, 110);"> {% if messages %}
                 {% for message in messages %}
@@ -151,7 +203,7 @@
             <tr>
                 <td>{{ form.project.label }}</td>
                 <td>: {{ form.project }}</td>
-                <td></td>
+                <td>{{ form.including_sunday }}{{ form.including_sunday.label }}</td>
                 <td><button type="submit" class="submit_button" id="submit_button_">Submit</button></td>
             </tr>
         </table>

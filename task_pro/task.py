@@ -12,6 +12,38 @@ def testing_view(self,args):
     return 'welcome'
 
 @shared_task(bind=True)
+def sunday_task_creation_view(self,args):
+    print('hello')
+    print('hiii')
+    total_task = Project.objects.filter(Is_daily=True)
+    project_info =[]
+    today = timezone.now().date()
+    for i in total_task:
+        project_info.append(i)
+    task_filter ={}
+    for i in project_info:
+        task = Task.objects.filter(project__id=i.id,including_sunday=True)
+        for pro in task:
+            if pro.title not in task_filter:
+                task_filter[pro.title] = pro
+    print(task_filter,len(task_filter))
+    for t  in task_filter.values():
+        task_creation = Task.objects.create(
+            title=t.title,
+            description=t.description,
+            assigned_to=t.assigned_to,
+            created_by=t.created_by,
+            due_date=today,
+            project=t.project,
+            status='Pending'
+        )
+
+        task_creation.save()
+        print('done')
+    return "Task Successfull sunday!"
+
+
+@shared_task(bind=True)
 def send_mail_view(self,args):
     total_task = Project.objects.filter(Is_daily=True)
     project_info =[]

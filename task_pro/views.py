@@ -18,6 +18,7 @@ from django_celery_beat.models import PeriodicTask, IntervalSchedule,CrontabSche
 
 from django.core.mail import send_mail
 from django.conf import settings
+import json
 # Create your views here.
 
 
@@ -376,7 +377,7 @@ def over_due(request):
             project_list[task.project.project_name] = task_count
     department= request.user.department
     today = timezone.now().date()
-    over_due_tasks = Task.objects.filter(assigned_to=request.user.id,due_date__lt=today).filter(Q(status="In progress") | Q(status="Pending")).order_by('due_date')
+    over_due_tasks = Task.objects.filter(assigned_to=request.user.id,due_date__lt=today).filter(Q(status="In progress") | Q(status="Pending") | Q(status="Stuck")).order_by('due_date')
     return render(request,'overdue_task.html',{"overdue_task":over_due_tasks,'department':department,'projects':project_list})
 
 
@@ -403,14 +404,9 @@ def add_user(request):
     return render(request,'add_user.html',{'form':form,'department':department,'projects':project_list})
 
 
+
 @login_required
 def Team_mem(request):
-    users_project = Task.objects.filter(assigned_to=request.user.id).distinct()
-    project_list = {}
-    for task in users_project:
-        if task.project.project_name not in project_list:
-            task_count = len(Task.objects.filter(project=task.project,assigned_to=request.user.id))
-            project_list[task.project.project_name] = task_count
     department= request.user.department
     members = CustomUser.objects.filter(department=request.user.department).exclude(username=request.user).order_by('username')
     mem_dict ={}
@@ -442,17 +438,17 @@ def Team_mem(request):
         username_ = CustomUser.objects.filter(username=i).first()
         pending =0
         in_progress=0
-        other_mem_list[username_.username]={'pending':pending,'in_progress':in_progress,'id':username_.id}
-        mem = Task.objects.filter(assigned_to=username_.id)
+        other_mem_list[username_.username]={'pending':pending,'in_progress':in_progress,'id':username_.id,'assigned_to':username_.department}
+        mem = Task.objects.filter(assigned_to=username_.id,created_by = request.user)
         for k in mem:
             if k.status =="In progress":
-                in_progress+=1
+                in_progress+=1  
             else:
                 pending+=1
         other_mem_list[username_.username]['pending']=pending
         other_mem_list[username_.username]["in_progress"]=in_progress
     print(other_mem_list)
-    return render(request,'team_mem.html',{"mem_dict":mem_dict,'department':department,'other_mem_list':other_mem_list,'projects':project_list})
+    return render(request,'team_mem.html',{"mem_dict":mem_dict,'department':department,'other_mem_list':other_mem_list})
 
 @login_required
 def profile_update(request,pk):
@@ -866,3 +862,32 @@ def report_view(request):
         }
 
     return render(request,'reportview.html',context)
+
+
+
+def check_title_unique(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        title = data.get('title')
+        title_retrival = Task.objects.filter(title=title)
+        if title_retrival:
+            return JsonResponse({'message':'Title is alredy exist !'})
+        response_data = {
+            'message':"unique",
+        }
+        return JsonResponse(response_data)
+
+
+def check_project_exist(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        project_name = data.get('project_name')
+        project_retrive = Project.objects.filter(project_name=project_name)
+        print(project_retrive)
+        if project_retrive:
+            return JsonResponse({'message':'Project name is already Exist !'})
+        response_data = {
+            'message':"unique",
+        }
+        return JsonResponse(response_data)
+

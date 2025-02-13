@@ -65,6 +65,7 @@ class Task(models.Model):
     waiting_time_start_at = models.DateTimeField(null=True,blank=True)         
     task_completed_at = models.DateTimeField(null=True,blank=True)
     is_late  = models.BooleanField(default=False)
+    including_sunday = models.BooleanField(default=False)
 
 
     def __str__(self):

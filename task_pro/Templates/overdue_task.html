@@ -18,18 +18,43 @@
         <table class="main-table">
             <th>S.No</th>
             <th>Task</th>
+            <th>Created by</th>
             <th>Due Date</th>
             <th>Status</th>
-            <th>Created by</th>
-            <th>Details</th>
+            <th>Waiting</th>
+            <th>Stuck Time</th>
             {% for i in overdue_task %}
                 <tr>
                     <td>{{ forloop.counter  }}</td>
-                    <td class="table_firstdata" >{{ i.title }}</td>
+                    <td class="table_firstdata"><a href="{% url 'update_task' i.id %}"> {{ i.title }} </a></td>
+                    <td>{{ i.created_by }} <p style="font-size: 11px;">{{ i.task_created_at }}</p> </td>
                     <td>{{ i.due_date }}</td>
-                    <td class="status">{{ i.status }}</td>
-                    <td  class="table_firstdata">{{ i.created_by }}</td>
-                    <td><a href="{% url 'update_task' i.id %}" >View</a></td>
+                    {% if i.incomplete %}
+                        <td ><span class="status_warning" style="width: 100px;text-align: center;">{{ i.status }}</span></td>
+                        <td><span class="waiting_user">{{ i.waiting_for_username }}</span></td>
+                    {% else %}
+                    <td class="status" style="width:100px;">
+                        <span style="{% if i.status == 'Completed' %}color:green;{% endif %}">{{ i.status }}</span>
+                        {% if i.status == "Completed" %}
+                            <br>
+                            <span 
+                                style="font-size: 11px; {% if i.is_late %}color: red;{% else %}color: green;{% endif %}">
+                                {{ i.task_completed_at }}
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td><span></span></td>
+                    {% endif %}
+                    <td>
+                        <div style="display: flex;flex-direction: column;">
+                            {% if i.struck_time_start_at %} 
+                                <span style="font-size:12px;"> <img src="{% static 'images/startbutt.jpg' %}" alt="" style="width: 10px;height: 10px;"> {{ i.struck_time_start_at }}</span>
+                            {% endif %}
+                            {% if i.stuck_time_end_at %}
+                                <span style="font-size:12px;"> <img src="{% static 'images/stopbutt.jpg' %}" alt="" style="width: 10px;height: 10px;"> {{ i.stuck_time_end_at }}</span>
+                            {% endif %}
+                        </div>    
+                    </td>
                 </tr>
             {% endfor %}
         </table>
