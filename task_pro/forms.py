@@ -7,11 +7,15 @@ from django.core.exceptions import ValidationError
 class CustomUserForm(forms.ModelForm):
     class Meta:
         model = CustomUser
-        fields = ['username','email','password','department','is_superuser','is_staff','head']
+        fields = ['username','email','password','department','is_superuser','is_staff','head','phone_number']
 
         widgets ={
             'username':forms.TextInput(attrs={
                 'class':'username_1 common_class'
+            }),
+            'phone_number':forms.TextInput(attrs={
+                'required': 'required',
+                'class':'phone_number_1 common_class'
             }),
             'email':forms.EmailInput(attrs={
                 'required': 'required',

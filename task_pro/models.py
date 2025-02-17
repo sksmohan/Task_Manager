@@ -27,6 +27,7 @@ class CustomUser(AbstractUser):
     department = models.CharField(choices=choose,max_length=100,default='Sales')
     head = models.BooleanField(default=False)
     profile_picture = models.ImageField(upload_to='images/',blank=True,null=True)
+    phone_number = models.CharField(max_length=11)
 
 class Project(models.Model):
     project_name = models.CharField(max_length=100)
@@ -37,6 +38,7 @@ class Project(models.Model):
 
     def __str__(self):
         return self.project_name
+
 class Task(models.Model):
     STATUS_CHOICES  = (
         ('Pending','Pending'),

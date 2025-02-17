@@ -41,12 +41,20 @@
                 <td>: {{ form.department }}</td>
             </tr>
             <tr>
-                {% if request.user.is_superuser %}
-                    <td>{{ form.is_superuser.label }}</td>
-                    <td>: {{ form.is_superuser }}</td>
-                {% endif %}
-                <td>Head :</td>
-                <td>: {{ form.is_staff }}</td>
+                <td>{{ form.phone_number.label }}</td>
+                <td>: {{ form.phone_number }}</td>
+                <td>
+                    {% if request.user.is_superuser %}
+                        {{ form.is_superuser.label }}  <br> <br>
+                    {% endif %}
+                    Head             
+                </td>
+                <td> 
+                    {% if request.user.is_superuser %}
+                        {{ form.is_superuser }} <br> <br>
+                    {% endif %}
+                    {{ form.is_staff }}
+                </td>
             </tr>
             <tr>
                 <td span><button type="submit"b style="border-radius: 5px;padding:2px;width:100px;">Submit</button></td>
